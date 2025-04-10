@@ -1,0 +1,39 @@
+# Criação de Interface de Agentes de IA com React
+
+## Objetivo Principal
+Desenvolver uma página inicial interativa que apresente diferentes agentes de IA através de cards selecionáveis, com o propósito de introduzir empresas e pessoas à inteligência artificial de forma acessível e prática.
+
+## Design e Identidade Visual
+- Paleta de cores principal: tons de azul escuro combinados com roxo/violeta
+- Estética futurista que remeta à tecnologia e inteligência artificial
+- Gradientes sutis nas transições entre azul escuro e roxo
+- Elementos gráficos que sugiram conexões neurais ou processamento de dados
+- Tipografia moderna e de fácil leitura
+- Fundo possivelmente com elementos abstratos ou padrões tecnológicos discretos
+- Iluminação e efeitos de brilho para destacar elementos interativos
+
+## Requisitos da Interface
+- Criar uma landing page moderna e responsiva usando React
+- Implementar cards para cada agente de IA com:
+  * Ícone representativo (SVG preferencial)
+  * Nome ou categoria do agente
+  * Descrição concisa (2-3 linhas)
+  * Botão de "TESTAR AGORA" com efeito hover
+- Adicionar transições suaves e animações simples para melhorar a experiência do usuário
+- Garantir design responsivo para desktop, tablet e mobile
+
+## Entregáveis Técnicos
+1. Estrutura completa de arquivos e pastas do projeto React
+2. Shell script para criar automaticamente esta estrutura
+3. Código-fonte completo com componentes React reutilizáveis
+4. Instruções detalhadas para executar o projeto localmente
+5. Dockerfile otimizado para implantação
+6. Instruções para deploy em plataformas como Vercel, Netlify, Heroku, Fargate ou EasyPanel
+7. Exemplo de, no mínimo, 5 tipos diferentes de agentes de IA para demonstração
+
+## Observações Importantes
+- Não utilizar bibliotecas de componentes como shadcn/ui
+- Priorizar CSS/SCSS puro ou styled-components
+- Garantir que o código seja claro e bem comentado
+- Incluir metadados e SEO básico
+- Garantir que o projeto seja facilmente adaptável para ambientes online como Replit, Bolt ou Loveable
