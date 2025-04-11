@@ -13,3 +13,4 @@ services:
       - PORT=5000
       - NODE_OPTIONS=--experimental-specifier-resolution=node
       - VITE_LOGO_URL=${VITE_LOGO_URL:-https://meudominio.com/nomedaimagem.svg}
+      - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL:-https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual}

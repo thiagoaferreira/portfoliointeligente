@@ -28,6 +28,8 @@ ENV PORT=5000
 ENV NODE_OPTIONS=--experimental-specifier-resolution=node
 # Variável de ambiente para o logo (pode ser sobrescrita durante o deploy)
 ENV VITE_LOGO_URL=https://meudominio.com/nomedaimagem.svg
+# Variável de ambiente para o webhook (pode ser sobrescrita durante o deploy)
+ENV VITE_WEBHOOK_URL=https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual
 
 # Diretório de trabalho
 WORKDIR /app

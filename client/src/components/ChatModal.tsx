@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useWebhookUrl } from '../hooks/use-env-config';
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -257,6 +258,7 @@ interface Message {
 }
 
 const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agentIcon }) => {
+  const webhookUrl = useWebhookUrl();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -332,7 +334,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
     };
     
     // Envia requisição HTTP POST para o webhook
-    fetch('https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual', {
+    fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
