@@ -102,9 +102,24 @@ const CloseButton = styled.button`
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.3s ease;
+  padding: 8px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  position: relative;
+  z-index: 10;
   
   &:hover {
     opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  &:active {
+    background: rgba(255, 255, 255, 0.2);
   }
 `;
 
@@ -261,17 +276,26 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
     }
   }, [messages]);
   
-  // Fecha o modal quando o usuário clica fora dele
+  // Fecha o modal quando o usuário clica fora dele ou no botão fechar
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
+      console.log("Fechando modal via clique outside");
+      e.stopPropagation();
       onClose();
     }
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
+      console.log("Fechando modal via ESC");
       onClose();
     }
+  };
+  
+  const handleCloseButtonClick = (e: React.MouseEvent) => {
+    console.log("Fechando modal via botão X");
+    e.stopPropagation();
+    onClose();
   };
   
   // Função para converter nomes para um formato URL amigável
@@ -366,7 +390,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
             <AgentName>{agentName}</AgentName>
             <AgentStatus>Online agora</AgentStatus>
           </AgentInfo>
-          <CloseButton onClick={onClose}>×</CloseButton>
+          <CloseButton onClick={handleCloseButtonClick}>×</CloseButton>
         </ModalHeader>
         
         <ChatArea>
