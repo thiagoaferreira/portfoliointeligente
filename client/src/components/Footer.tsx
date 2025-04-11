@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useLogoFromEnv } from './Header';
 
 const FooterSection = styled.footer`
   position: relative;
@@ -42,6 +43,12 @@ const LogoIcon = styled.div`
   align-items: center;
   justify-content: center;
   color: white;
+`;
+
+const LogoImage = styled.img`
+  height: 2.8rem;
+  max-width: 160px;
+  object-fit: contain;
 `;
 
 const LogoText = styled.h3`
@@ -130,14 +137,28 @@ const BottomLink = styled.a`
 `;
 
 const Footer: React.FC = () => {
+  // Usa o hook customizado para obter a URL do logo da variável de ambiente
+  const logoUrl = useLogoFromEnv();
+  
+  // Obtém o ano atual para o copyright
+  const currentYear = new Date().getFullYear();
+  
   return (
     <FooterSection>
       <FooterContainer>
         <LogoContainer>
-          <LogoIcon>
-            <i className="fas fa-brain"></i>
-          </LogoIcon>
-          <LogoText>Nexus<span>AI</span></LogoText>
+          {logoUrl ? (
+            // Se houver uma URL de logo definida, exibe a imagem
+            <LogoImage src={logoUrl} alt="Logo" />
+          ) : (
+            // Fallback: exibe o logo padrão se a variável de ambiente não estiver definida
+            <>
+              <LogoIcon>
+                <i className="fas fa-brain"></i>
+              </LogoIcon>
+              <LogoText>Nexus<span>AI</span></LogoText>
+            </>
+          )}
         </LogoContainer>
         <FooterText>
           Transformando empresas através da inteligência artificial avançada e agentes especializados.
@@ -145,7 +166,7 @@ const Footer: React.FC = () => {
         
         <BottomBar>
           <Copyright>
-            <span>© 2023 NexusAI. Todos os direitos reservados.</span>
+            <span>© {currentYear} NexusAI. Todos os direitos reservados.</span>
             <SocialLinks>
               <SocialLink href="#" aria-label="Twitter"><i className="fab fa-twitter"></i></SocialLink>
               <SocialLink href="#" aria-label="Linkedin"><i className="fab fa-linkedin"></i></SocialLink>

@@ -61,9 +61,15 @@ const LogoText = styled.h1`
   }
 `;
 
-const Header: React.FC = () => {
+// Criando um hook personalizado para reutilizar a lógica do logo
+export const useLogoFromEnv = () => {
   // Recupera a URL do logo da variável de ambiente
   const logoUrl = import.meta.env.VITE_LOGO_URL;
+  return logoUrl;
+};
+
+const Header: React.FC = () => {
+  const logoUrl = useLogoFromEnv();
   
   return (
     <HeaderContainer>
