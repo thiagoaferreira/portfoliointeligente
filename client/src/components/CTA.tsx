@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useWhatsAppLink } from '../hooks/use-env-config';
 
 const CTASection = styled.section`
   position: relative;
@@ -163,6 +164,8 @@ const GridPattern = () => (
 );
 
 const CTA: React.FC = () => {
+  const whatsappLink = useWhatsAppLink();
+  
   return (
     <CTASection>
       <SectionContainer>
@@ -179,7 +182,7 @@ const CTA: React.FC = () => {
             </Description>
             
             <ButtonContainer>
-              <PrimaryButton href="https://wa.me/5544999998888" target="_blank" rel="noopener noreferrer">
+              <PrimaryButton href={whatsappLink} target="_blank" rel="noopener noreferrer">
                 Saiba Mais
               </PrimaryButton>
             </ButtonContainer>

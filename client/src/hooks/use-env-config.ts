@@ -31,3 +31,21 @@ export const useWebhookUrl = () => {
   
   return webhookUrl;
 };
+
+// Hook para obter o link do WhatsApp da variável de ambiente
+export const useWhatsAppLink = () => {
+  const [whatsappLink, setWhatsAppLink] = useState<string>('');
+  
+  useEffect(() => {
+    const envWhatsAppNumber = import.meta.env.VITE_WHATSAPP_NUMBER;
+    const defaultWhatsAppNumber = '5544999998888';
+    
+    const whatsAppNumber = envWhatsAppNumber || defaultWhatsAppNumber;
+    const finalWhatsAppLink = `https://wa.me/${whatsAppNumber}`;
+    
+    console.log('VITE_WHATSAPP_NUMBER ou número padrão:', whatsAppNumber);
+    setWhatsAppLink(finalWhatsAppLink);
+  }, []);
+  
+  return whatsappLink;
+};
