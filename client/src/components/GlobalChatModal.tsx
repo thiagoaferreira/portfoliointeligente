@@ -281,7 +281,7 @@ const ChatInput = styled.input`
   }
 `;
 
-const SendButton = styled.button`
+const ActionButton = styled.button`
   background: linear-gradient(to right, #6b46c1, #2563eb);
   border: none;
   color: white;
@@ -296,6 +296,57 @@ const SendButton = styled.button`
   
   &:hover {
     transform: scale(1.1);
+  }
+`;
+
+const SendButton = styled(ActionButton)``;
+
+const RecordButton = styled(ActionButton)<{ $isRecording?: boolean }>`
+  background: ${props => props.$isRecording 
+    ? 'linear-gradient(to right, #e11d48, #f43f5e)' 
+    : 'linear-gradient(to right, #4f46e5, #6366f1)'};
+  animation: ${props => props.$isRecording ? 'pulse 2s infinite' : 'none'};
+  
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(229, 62, 62, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
+    }
+  }
+`;
+
+const RecordingTime = styled.div`
+  position: absolute;
+  bottom: 4.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(22, 27, 58, 0.9);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  &::before {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #f43f5e;
+    animation: blink 1s infinite;
+  }
+  
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
   }
 `;
 
@@ -372,6 +423,110 @@ const MessageContent: React.FC<MessageContentProps> = ({ message }) => {
   }
 };
 
+// Hook para gravar áudio
+const useAudioRecorder = () => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [audioBase64, setAudioBase64] = useState<string | null>(null);
+  
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Função para iniciar a gravação
+  const startRecording = async () => {
+    try {
+      // Limpa os dados anteriores
+      audioChunksRef.current = [];
+      setAudioBase64(null);
+      setRecordingTime(0);
+      
+      // Solicita permissão para acessar o microfone
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Configura o MediaRecorder
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      
+      // Configura os listeners
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = () => {
+        // Quando a gravação for interrompida, converta o áudio para base64
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        convertBlobToBase64(audioBlob).then((base64) => {
+          setAudioBase64(base64);
+        });
+        
+        // Interrompe todos os tracks de áudio
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      // Inicia a gravação
+      mediaRecorder.start();
+      setIsRecording(true);
+      
+      // Configura o timer para atualizar o tempo de gravação
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Erro ao iniciar a gravação:', error);
+      alert('Não foi possível acessar o microfone. Verifique as permissões do navegador.');
+    }
+  };
+  
+  // Função para interromper a gravação
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      // Limpa o timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  };
+  
+  // Função para converter Blob para Base64
+  const convertBlobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        // Remove o prefixo 'data:audio/wav;base64,' para obter apenas o base64
+        const base64 = base64String.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+  
+  // Formata o tempo de gravação (segundos) para MM:SS
+  const formatRecordingTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+  
+  return {
+    isRecording,
+    recordingTime,
+    formattedTime: formatRecordingTime(recordingTime),
+    audioBase64,
+    startRecording,
+    stopRecording
+  };
+};
+
 // Componente principal GlobalChatModal
 const GlobalChatModal: React.FC = () => {
   const { isOpen, agentName, agentIcon, closeModal } = useChatModal();
@@ -379,6 +534,16 @@ const GlobalChatModal: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageIdCounter = useRef(1);
+  
+  // Estado para gravar áudio
+  const {
+    isRecording,
+    recordingTime,
+    formattedTime,
+    audioBase64,
+    startRecording,
+    stopRecording
+  } = useAudioRecorder();
   
   // Reseta as mensagens e adiciona a mensagem inicial quando o modal é aberto
   useEffect(() => {
@@ -413,6 +578,143 @@ const GlobalChatModal: React.FC = () => {
       .replace(/^-+|-+$/g, ''); // Remove hífens no início e fim
   };
   
+  // Função para enviar áudio
+  const handleSendAudio = () => {
+    if (!audioBase64) return;
+    
+    // Adiciona mensagem do usuário (áudio)
+    const newUserMessage: Message = {
+      id: messageIdCounter.current++,
+      text: `data:audio/wav;base64,${audioBase64}`,
+      isUser: true,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      createdAt: Date.now(),
+      type: 'audio'
+    };
+    
+    setMessages(prev => [...prev, newUserMessage]);
+    
+    // Prepara o payload para o webhook
+    const webhookPayload = {
+      agent: slugifyAgentName(agentName),
+      message: audioBase64,
+      typeMessage: "audio"
+    };
+    
+    // Envia requisição HTTP POST para o webhook
+    fetch('https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(webhookPayload),
+    })
+    .then(response => response.json())
+    .then((responseData) => {
+      console.log('Webhook response data (audio):', responseData);
+      
+      // Extrai as mensagens da estrutura aninhada
+      let messages: Array<{message: string, typeMessage: 'audio' | 'image' | 'document' | 'video' | 'text'}> = [];
+      
+      // Analisando o formato real do response com logs
+      console.log('Tipo de responseData (audio):', typeof responseData);
+      if (typeof responseData === 'object' && responseData !== null) {
+        console.log('Propriedades de responseData (audio):', Object.keys(responseData));
+      }
+      
+      // Tenta extrair mensagens de todos os formatos possíveis
+      if (Array.isArray(responseData) && responseData.length > 0) {
+        // Formato 1: [{messages: [{message, typeMessage}, ...]}]
+        if (responseData[0]?.messages && Array.isArray(responseData[0].messages)) {
+          messages = responseData[0].messages;
+          console.log('Formato 1 detectado (audio):', messages);
+        } 
+        // Formato 2: [{message, typeMessage}, ...]
+        else if (responseData[0]?.message && responseData[0]?.typeMessage) {
+          messages = responseData;
+          console.log('Formato 2 detectado (audio):', messages);
+        }
+      }
+      // Formato 3: {messages: [{message, typeMessage}, ...]}
+      else if (responseData?.messages && Array.isArray(responseData.messages)) {
+        messages = responseData.messages;
+        console.log('Formato 3 detectado (audio):', messages);
+      }
+      
+      // Processa cada mensagem da resposta com delay entre elas
+      if (messages.length > 0) {
+        console.log('Mensagens processadas (audio):', messages);
+        
+        // Função para adicionar mensagens sequencialmente com delay
+        const addMessagesWithDelay = (messages: typeof messages, index: number) => {
+          if (index >= messages.length) return;
+          
+          const item = messages[index];
+          const newAgentMessage: Message = {
+            id: messageIdCounter.current++,
+            text: item.message,
+            isUser: false,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            createdAt: Date.now(),
+            type: item.typeMessage
+          };
+          
+          setMessages(prev => [...prev, newAgentMessage]);
+          
+          // Agenda a próxima mensagem com delay de 2 segundos
+          setTimeout(() => {
+            addMessagesWithDelay(messages, index + 1);
+          }, 2000);
+        };
+        
+        // Inicia o processo com a primeira mensagem
+        addMessagesWithDelay(messages, 0);
+      } else {
+        // Fallback para quando não há resposta do webhook ou formato é inválido
+        console.log('Usando mensagem fallback (audio) - formato de resposta não reconhecido');
+        const fallbackMessage: Message = {
+          id: messageIdCounter.current++,
+          text: `Recebi seu áudio e estou processando. Como posso ajudar você com ${agentName}?`,
+          isUser: false,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          createdAt: Date.now(),
+          type: 'text'
+        };
+        
+        setMessages(prev => [...prev, fallbackMessage]);
+      }
+    })
+    .catch(error => {
+      console.error('Erro ao enviar áudio para o webhook:', error);
+      // Mensagem de erro
+      const errorMessage: Message = {
+        id: messageIdCounter.current++,
+        text: `Desculpe, tivemos um problema ao processar seu áudio. Por favor, tente novamente.`,
+        isUser: false,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        createdAt: Date.now(),
+        type: 'text'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    });
+  };
+  
+  // Efeito para enviar o áudio quando estiver disponível
+  useEffect(() => {
+    if (audioBase64) {
+      handleSendAudio();
+    }
+  }, [audioBase64]);
+  
+  // Função para alternar entre gravação e parada
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
   const handleSendMessage = () => {
     if (inputValue.trim() === '') return;
     
@@ -593,14 +895,35 @@ const GlobalChatModal: React.FC = () => {
         </ChatArea>
         
         <InputArea>
+          {isRecording && (
+            <RecordingTime>
+              {formattedTime}
+            </RecordingTime>
+          )}
+          
           <ChatInput
             type="text"
             placeholder="Digite sua mensagem..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            disabled={isRecording}
           />
-          <SendButton onClick={handleSendMessage}>
+          
+          {/* Botão de gravação */}
+          <RecordButton 
+            onClick={toggleRecording}
+            $isRecording={isRecording}
+            title={isRecording ? "Parar gravação" : "Gravar áudio"}
+          >
+            <i className={isRecording ? "fas fa-stop" : "fas fa-microphone"}></i>
+          </RecordButton>
+          
+          {/* Botão de envio */}
+          <SendButton 
+            onClick={handleSendMessage}
+            disabled={isRecording || inputValue.trim() === ''}
+          >
             <i className="fas fa-paper-plane"></i>
           </SendButton>
         </InputArea>
