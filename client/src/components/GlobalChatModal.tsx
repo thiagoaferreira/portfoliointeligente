@@ -1041,15 +1041,16 @@ const GlobalChatModal: React.FC = () => {
           <RecordButton 
             onClick={toggleRecording}
             $isRecording={isRecording}
-            title={isRecording ? "Parar gravação" : "Gravar áudio"}
+            title={isRecording ? "Pausar gravação" : "Gravar áudio"}
           >
-            <i className={isRecording ? "fas fa-stop" : "fas fa-microphone"}></i>
+            <i className={isRecording ? "fas fa-pause" : "fas fa-microphone"}></i>
           </RecordButton>
           
-          {/* Botão de envio */}
+          {/* Botão de envio - agora também interrompe e envia o áudio se estiver gravando */}
           <SendButton 
-            onClick={handleSendMessage}
-            disabled={isRecording || inputValue.trim() === ''}
+            onClick={isRecording ? stopRecording : handleSendMessage}
+            disabled={!isRecording && inputValue.trim() === ''}
+            title={isRecording ? "Enviar áudio" : "Enviar mensagem"}
           >
             <i className="fas fa-paper-plane"></i>
           </SendButton>
