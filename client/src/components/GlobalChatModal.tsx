@@ -351,6 +351,77 @@ const RecordingTime = styled.div`
   }
 `;
 
+// Componente que mostra o indicador de digitação
+const TypingIndicator = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  background: rgba(45, 55, 72, 0.7);
+  border-radius: 1rem;
+  width: fit-content;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  max-width: 80px;
+  
+  span {
+    height: 8px;
+    width: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.7);
+    display: inline-block;
+    margin: 0 2px;
+    
+    &:nth-child(1) {
+      animation: typingBounce 1.3s infinite 0s;
+    }
+    
+    &:nth-child(2) {
+      animation: typingBounce 1.3s infinite 0.2s;
+    }
+    
+    &:nth-child(3) {
+      animation: typingBounce 1.3s infinite 0.4s;
+    }
+  }
+  
+  @keyframes typingBounce {
+    0%, 60%, 100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(-4px);
+    }
+  }
+`;
+
+// Estilo aprimorado para o player de áudio
+const AudioContainer = styled.div`
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  
+  .audio-player {
+    width: 100%;
+    height: 40px;
+    margin-bottom: 4px;
+  }
+  
+  .audio-info {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .audio-icon {
+    margin-right: 5px;
+  }
+  
+  .audio-duration {
+    margin-left: auto;
+  }
+`;
+
 interface Message {
   id: number;
   text: string;
@@ -367,28 +438,89 @@ interface MessageContentProps {
 
 const MessageContent: React.FC<MessageContentProps> = ({ message }) => {
   const { text, type } = message;
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [audioDuration, setAudioDuration] = useState<string>('00:00');
+  
+  // Função para formatar a duração do áudio
+  const formatAudioDuration = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Atualiza a duração quando um áudio é carregado
+  useEffect(() => {
+    if (type === 'audio' && audioRef.current) {
+      const handleLoadedMetadata = () => {
+        if (audioRef.current) {
+          setAudioDuration(formatAudioDuration(audioRef.current.duration));
+        }
+      };
+      
+      audioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+      
+      // Se já estiver carregado, atualize agora
+      if (audioRef.current.readyState >= 2) {
+        handleLoadedMetadata();
+      }
+      
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        }
+      };
+    }
+  }, [type, text]);
   
   switch (type) {
     case 'image':
       return (
         <div className="message-content-image">
-          <img src={text} alt="Imagem enviada" style={{ maxWidth: '100%', borderRadius: '0.5rem', marginBottom: '0.5rem' }} />
+          <img 
+            src={text} 
+            alt="Imagem enviada" 
+            style={{ 
+              maxWidth: '100%', 
+              borderRadius: '0.5rem', 
+              marginBottom: '0.5rem' 
+            }} 
+          />
         </div>
       );
     
     case 'audio':
       return (
-        <div className="message-content-audio">
-          <audio controls src={text} style={{ width: '100%', marginBottom: '0.5rem' }}>
+        <AudioContainer>
+          <audio 
+            ref={audioRef}
+            controls 
+            src={text} 
+            className="audio-player"
+          >
             Seu navegador não suporta o elemento de áudio.
           </audio>
-        </div>
+          <div className="audio-info">
+            <span className="audio-icon">
+              <i className="fas fa-microphone"></i>
+            </span>
+            <span>Áudio</span>
+            <span className="audio-duration">{audioDuration}</span>
+          </div>
+        </AudioContainer>
       );
     
     case 'video':
       return (
         <div className="message-content-video">
-          <video controls src={text} style={{ maxWidth: '100%', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
+          <video 
+            controls 
+            src={text} 
+            style={{ 
+              maxWidth: '100%', 
+              borderRadius: '0.5rem', 
+              marginBottom: '0.5rem' 
+            }}
+          >
             Seu navegador não suporta o elemento de vídeo.
           </video>
         </div>
@@ -606,6 +738,7 @@ const GlobalChatModal: React.FC = () => {
   const { isOpen, agentName, agentIcon, closeModal } = useChatModal();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageIdCounter = useRef(1);
   
@@ -667,6 +800,9 @@ const GlobalChatModal: React.FC = () => {
     };
     
     setMessages(prev => [...prev, newUserMessage]);
+    
+    // Ativa o indicador de digitação
+    setIsTyping(true);
     
     // Prepara o payload para o webhook
     const webhookPayload = {
@@ -803,6 +939,9 @@ const GlobalChatModal: React.FC = () => {
     };
     
     setMessages(prev => [...prev, newUserMessage]);
+    
+    // Ativa o indicador de digitação
+    setIsTyping(true);
     
     // Prepara o formato do payload para o webhook
     const webhookPayload = {
@@ -965,6 +1104,21 @@ const GlobalChatModal: React.FC = () => {
               </BubbleContainer>
             </MessageWrapper>
           ))}
+          
+          {/* Indicador de digitação */}
+          {isTyping && (
+            <MessageWrapper 
+              $isUser={false}
+              className="zoom-in-bounce"
+            >
+              <TypingIndicator>
+                <span></span>
+                <span></span>
+                <span></span>
+              </TypingIndicator>
+            </MessageWrapper>
+          )}
+          
           <div ref={messagesEndRef} />
         </ChatArea>
         
