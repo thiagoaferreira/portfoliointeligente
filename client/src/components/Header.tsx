@@ -40,6 +40,12 @@ const LogoIcon = styled.div`
   color: white;
 `;
 
+const LogoImage = styled.img`
+  height: 3rem;
+  max-width: 180px;
+  object-fit: contain;
+`;
+
 const LogoText = styled.h1`
   font-size: 1.5rem;
   
@@ -56,14 +62,25 @@ const LogoText = styled.h1`
 `;
 
 const Header: React.FC = () => {
+  // Recupera a URL do logo da variável de ambiente
+  const logoUrl = import.meta.env.VITE_LOGO_URL;
+  
   return (
     <HeaderContainer>
       <HeaderContent>
         <LogoContainer>
-          <LogoIcon>
-            <i className="fas fa-brain"></i>
-          </LogoIcon>
-          <LogoText>Nexus<span>AI</span></LogoText>
+          {logoUrl ? (
+            // Se houver uma URL de logo definida, exibe a imagem
+            <LogoImage src={logoUrl} alt="Logo" />
+          ) : (
+            // Fallback: exibe o logo padrão se a variável de ambiente não estiver definida
+            <>
+              <LogoIcon>
+                <i className="fas fa-brain"></i>
+              </LogoIcon>
+              <LogoText>Nexus<span>AI</span></LogoText>
+            </>
+          )}
         </LogoContainer>
       </HeaderContent>
     </HeaderContainer>

@@ -26,6 +26,8 @@ FROM node:18-alpine
 ENV NODE_ENV=production
 ENV PORT=5000
 ENV NODE_OPTIONS=--experimental-specifier-resolution=node
+# Variável de ambiente para o logo (pode ser sobrescrita durante o deploy)
+ENV VITE_LOGO_URL=https://meudominio.com/nomedaimagem.svg
 
 # Diretório de trabalho
 WORKDIR /app
