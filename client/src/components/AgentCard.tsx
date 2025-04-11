@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import ChatModal from './ChatModal';
+import { useChatModal } from './GlobalChatModal';
 
 interface AgentCardProps {
   icon: string;
@@ -129,41 +129,28 @@ const Button = styled.a`
 `;
 
 const AgentCard: React.FC<AgentCardProps> = ({ icon, title, description }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { openModal } = useChatModal();
   
   const handleOpenModal = (e: React.MouseEvent) => {
     e.preventDefault();
-    setIsModalOpen(true);
-  };
-  
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+    openModal(title, icon);
   };
   
   return (
-    <>
-      <Card>
-        <IconContainer>
-          <Icon>
-            <i className={icon}></i>
-          </Icon>
-        </IconContainer>
-        <Title>{title}</Title>
-        <Description>{description}</Description>
-        <ButtonContainer>
-          <Button href="#" onClick={handleOpenModal}>
-            TESTAR AGORA
-          </Button>
-        </ButtonContainer>
-      </Card>
-      
-      <ChatModal 
-        isOpen={isModalOpen} 
-        onClose={handleCloseModal} 
-        agentName={title}
-        agentIcon={icon}
-      />
-    </>
+    <Card>
+      <IconContainer>
+        <Icon>
+          <i className={icon}></i>
+        </Icon>
+      </IconContainer>
+      <Title>{title}</Title>
+      <Description>{description}</Description>
+      <ButtonContainer>
+        <Button href="#" onClick={handleOpenModal}>
+          TESTAR AGORA
+        </Button>
+      </ButtonContainer>
+    </Card>
   );
 };
 
