@@ -1,15 +1,15 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
 const HeaderContainer = styled.header`
   position: relative;
   z-index: 10;
   padding: 1.5rem 1rem;
-  
+
   @media (min-width: 768px) {
     padding: 1.5rem 2rem;
   }
-  
+
   @media (min-width: 1024px) {
     padding: 1.5rem 4rem;
   }
@@ -44,21 +44,20 @@ const LogoImage = styled.img`
   width: 250px;
   height: 100px;
   object-fit: contain;
-  border: 2px solid red;
   padding: 5px;
   border-radius: 5px;
 `;
 
 const LogoText = styled.h1`
   font-size: 1.5rem;
-  
+
   @media (min-width: 768px) {
     font-size: 1.875rem;
   }
-  
+
   color: white;
-  font-family: 'Audiowide', cursive;
-  
+  font-family: "Audiowide", cursive;
+
   span {
     color: #a78bfa;
   }
@@ -67,17 +66,18 @@ const LogoText = styled.h1`
 // Criando um hook personalizado para reutilizar a lógica do logo
 export const useLogoFromEnv = () => {
   // URL padrão de logo caso a variável de ambiente não esteja definida
-  const defaultLogo = "https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png";
-  
+  const defaultLogo =
+    "https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png";
+
   // Recupera a URL do logo da variável de ambiente ou usa a URL padrão
   const logoUrl = import.meta.env.VITE_LOGO_URL || defaultLogo;
-  console.log('VITE_LOGO_URL ou URL padrão:', logoUrl); // Log para debug
+  console.log("VITE_LOGO_URL ou URL padrão:", logoUrl); // Log para debug
   return logoUrl;
 };
 
 const Header: React.FC = () => {
   const logoUrl = useLogoFromEnv();
-  
+
   return (
     <HeaderContainer>
       <HeaderContent>
@@ -91,7 +91,9 @@ const Header: React.FC = () => {
               <LogoIcon>
                 <i className="fas fa-brain"></i>
               </LogoIcon>
-              <LogoText>Nexus<span>AI</span></LogoText>
+              <LogoText>
+                Nexus<span>AI</span>
+              </LogoText>
             </>
           )}
         </LogoContainer>

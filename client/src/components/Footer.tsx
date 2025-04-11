@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components';
-import { useLogoFromEnv } from './Header';
+import React from "react";
+import styled from "styled-components";
+import { useLogoFromEnv } from "./Header";
 
 const FooterSection = styled.footer`
   position: relative;
@@ -8,11 +8,11 @@ const FooterSection = styled.footer`
   padding: 3rem 1rem;
   background-color: rgba(15, 23, 42, 0.8);
   border-top: 1px solid rgba(139, 92, 246, 0.2);
-  
+
   @media (min-width: 768px) {
     padding: 3rem 2rem;
   }
-  
+
   @media (min-width: 1024px) {
     padding: 3rem 4rem;
   }
@@ -49,7 +49,6 @@ const LogoImage = styled.img`
   width: 250px;
   height: 100px;
   object-fit: contain;
-  border: 2px solid red;
   padding: 5px;
   border-radius: 5px;
 `;
@@ -57,8 +56,8 @@ const LogoImage = styled.img`
 const LogoText = styled.h3`
   font-size: 1.5rem;
   color: white;
-  font-family: 'Audiowide', cursive;
-  
+  font-family: "Audiowide", cursive;
+
   span {
     color: #a78bfa;
   }
@@ -77,7 +76,7 @@ const BottomBar = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  
+
   @media (min-width: 640px) {
     flex-direction: row;
     justify-content: space-between;
@@ -91,7 +90,7 @@ const Copyright = styled.div`
   gap: 1rem;
   flex-wrap: wrap;
   justify-content: center;
-  
+
   @media (min-width: 640px) {
     justify-content: flex-start;
   }
@@ -101,7 +100,7 @@ const SocialLinks = styled.div`
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
-  
+
   @media (min-width: 640px) {
     margin-top: 0;
   }
@@ -111,7 +110,7 @@ const SocialLink = styled.a`
   color: #6b7280;
   transition: color 0.3s ease;
   font-size: 1.125rem;
-  
+
   &:hover {
     color: #c4b5fd;
   }
@@ -119,7 +118,7 @@ const SocialLink = styled.a`
 
 const BottomLinks = styled.div`
   margin-top: 1rem;
-  
+
   @media (min-width: 640px) {
     margin-top: 0;
   }
@@ -129,11 +128,11 @@ const BottomLink = styled.a`
   color: #6b7280;
   transition: color 0.3s ease;
   margin-right: 1.5rem;
-  
+
   &:last-child {
     margin-right: 0;
   }
-  
+
   &:hover {
     color: #c4b5fd;
   }
@@ -142,10 +141,10 @@ const BottomLink = styled.a`
 const Footer: React.FC = () => {
   // Usa o hook customizado para obter a URL do logo da variável de ambiente
   const logoUrl = useLogoFromEnv();
-  
+
   // Obtém o ano atual para o copyright
   const currentYear = new Date().getFullYear();
-  
+
   return (
     <FooterSection>
       <FooterContainer>
@@ -159,22 +158,33 @@ const Footer: React.FC = () => {
               <LogoIcon>
                 <i className="fas fa-brain"></i>
               </LogoIcon>
-              <LogoText>Nexus<span>AI</span></LogoText>
+              <LogoText>
+                Nexus<span>AI</span>
+              </LogoText>
             </>
           )}
         </LogoContainer>
         <FooterText>
-          Transformando empresas através da inteligência artificial avançada e agentes especializados.
+          Transformando empresas através da inteligência artificial avançada e
+          agentes especializados.
         </FooterText>
-        
+
         <BottomBar>
           <Copyright>
             <span>© {currentYear} NexusAI. Todos os direitos reservados.</span>
             <SocialLinks>
-              <SocialLink href="#" aria-label="Twitter"><i className="fab fa-twitter"></i></SocialLink>
-              <SocialLink href="#" aria-label="Linkedin"><i className="fab fa-linkedin"></i></SocialLink>
-              <SocialLink href="#" aria-label="Instagram"><i className="fab fa-instagram"></i></SocialLink>
-              <SocialLink href="#" aria-label="WhatsApp"><i className="fab fa-whatsapp"></i></SocialLink>
+              <SocialLink href="#" aria-label="Twitter">
+                <i className="fab fa-twitter"></i>
+              </SocialLink>
+              <SocialLink href="#" aria-label="Linkedin">
+                <i className="fab fa-linkedin"></i>
+              </SocialLink>
+              <SocialLink href="#" aria-label="Instagram">
+                <i className="fab fa-instagram"></i>
+              </SocialLink>
+              <SocialLink href="#" aria-label="WhatsApp">
+                <i className="fab fa-whatsapp"></i>
+              </SocialLink>
             </SocialLinks>
           </Copyright>
           <BottomLinks>
