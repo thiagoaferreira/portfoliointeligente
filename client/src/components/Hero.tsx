@@ -157,8 +157,8 @@ const Hero: React.FC = () => {
           <PrimaryButton href="#agents">
             Explorar Agentes
           </PrimaryButton>
-          <SecondaryButton href="#">
-            Saiba Mais
+          <SecondaryButton href="https://wa.me/5544999998888" target="_blank" rel="noopener noreferrer">
+            Converse pelo WhatsApp
           </SecondaryButton>
         </ButtonsContainer>
       </HeroContainer>

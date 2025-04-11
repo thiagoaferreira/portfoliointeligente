@@ -74,7 +74,7 @@ const BottomBar = styled.div`
   }
 `;
 
-const Copyright = styled.p`
+const Copyright = styled.div`
   color: #6b7280;
   display: flex;
   align-items: center;
@@ -145,7 +145,7 @@ const Footer: React.FC = () => {
         
         <BottomBar>
           <Copyright>
-            © 2023 NexusAI. Todos os direitos reservados.
+            <span>© 2023 NexusAI. Todos os direitos reservados.</span>
             <SocialLinks>
               <SocialLink href="#" aria-label="Twitter"><i className="fab fa-twitter"></i></SocialLink>
               <SocialLink href="#" aria-label="Linkedin"><i className="fab fa-linkedin"></i></SocialLink>
