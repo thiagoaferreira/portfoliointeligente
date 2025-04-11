@@ -174,17 +174,14 @@ const CTA: React.FC = () => {
           <CTAContent>
             <Title>Pronto para começar?</Title>
             <Description>
-              Experimente nossos agentes de IA agora e transforme a maneira como sua empresa opera. 
-              Cadastre-se para um teste gratuito de 14 dias.
+              Quer saber como nossos agentes de IA podem impulsionar seus resultados? 
+              Fale agora mesmo com um de nossos especialistas e descubra soluções personalizadas para o seu negócio.
             </Description>
             
             <ButtonContainer>
-              <PrimaryButton href="#">
-                Iniciar Teste Gratuito
+              <PrimaryButton href="https://wa.me/5544999998888" target="_blank" rel="noopener noreferrer">
+                Saiba Mais
               </PrimaryButton>
-              <SecondaryButton href="#">
-                Agendar Demonstração
-              </SecondaryButton>
             </ButtonContainer>
           </CTAContent>
         </CTACard>
