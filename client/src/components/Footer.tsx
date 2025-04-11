@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { useLogoFromEnv } from "./Header";
+import { useLogoFromEnv } from "../hooks/use-env-config";
 
 const FooterSection = styled.footer`
   position: relative;

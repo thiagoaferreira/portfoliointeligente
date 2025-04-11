@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { useLogoFromEnv } from "../hooks/use-env-config";
 
 const HeaderContainer = styled.header`
   position: relative;
@@ -63,17 +64,7 @@ const LogoText = styled.h1`
   }
 `;
 
-// Criando um hook personalizado para reutilizar a lógica do logo
-export const useLogoFromEnv = () => {
-  // URL padrão de logo caso a variável de ambiente não esteja definida
-  const defaultLogo =
-    "https://static.vecteezy.com/system/resources/previews/009/384/620/original/ai-tech-artificial-intelligence-clipart-design-illustration-free-png.png";
-
-  // Recupera a URL do logo da variável de ambiente ou usa a URL padrão
-  const logoUrl = import.meta.env.VITE_LOGO_URL || defaultLogo;
-  console.log("VITE_LOGO_URL ou URL padrão:", logoUrl); // Log para debug
-  return logoUrl;
-};
+// O hook useLogoFromEnv foi movido para client/src/hooks/use-env-config.ts
 
 const Header: React.FC = () => {
   const logoUrl = useLogoFromEnv();
