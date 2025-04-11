@@ -450,16 +450,29 @@ const GlobalChatModal: React.FC = () => {
       // Extrai as mensagens da estrutura aninhada
       let messages: Array<{message: string, typeMessage: 'audio' | 'image' | 'document' | 'video' | 'text'}> = [];
       
-      // Tenta acessar cada formato possível de resposta
+      // Analisando o formato real do response com logs
+      console.log('Tipo de responseData:', typeof responseData);
+      if (typeof responseData === 'object' && responseData !== null) {
+        console.log('Propriedades de responseData:', Object.keys(responseData));
+      }
+      
+      // Tenta extrair mensagens de todos os formatos possíveis
       if (Array.isArray(responseData) && responseData.length > 0) {
-        // Formato: [{messages: [{message, typeMessage}, ...]}]
+        // Formato 1: [{messages: [{message, typeMessage}, ...]}]
         if (responseData[0]?.messages && Array.isArray(responseData[0].messages)) {
           messages = responseData[0].messages;
+          console.log('Formato 1 detectado:', messages);
         } 
-        // Formato: [{message, typeMessage}, ...]
+        // Formato 2: [{message, typeMessage}, ...]
         else if (responseData[0]?.message && responseData[0]?.typeMessage) {
           messages = responseData;
+          console.log('Formato 2 detectado:', messages);
         }
+      }
+      // Formato 3: {messages: [{message, typeMessage}, ...]}
+      else if (responseData?.messages && Array.isArray(responseData.messages)) {
+        messages = responseData.messages;
+        console.log('Formato 3 detectado:', messages);
       }
       
       // Processa cada mensagem da resposta com delay entre elas
