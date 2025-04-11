@@ -124,11 +124,28 @@ const ChatArea = styled.div`
     url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 50 L70 30 L50 10 L30 30 Z' fill='%236b46c1' fill-opacity='0.05'/%3E%3C/svg%3E");
 `;
 
-const MessageBubble = styled.div<{ $isUser: boolean }>`
+const bubbleZoomInBounce = keyframes`
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+`;
+
+const MessageWrapper = styled.div<{ $isUser: boolean }>`
+  align-self: ${props => props.$isUser ? 'flex-end' : 'flex-start'};
+`;
+
+const BubbleContainer = styled.div<{ $isUser: boolean }>`
   max-width: 80%;
   padding: 0.75rem 1rem;
   border-radius: 1rem;
-  align-self: ${props => props.$isUser ? 'flex-end' : 'flex-start'};
   background: ${props => props.$isUser 
     ? 'linear-gradient(to right, #6b46c1, #2563eb)' 
     : 'rgba(45, 55, 72, 0.7)'};
@@ -202,11 +219,28 @@ const SendButton = styled.button`
   }
 `;
 
+// Componente de bolha de mensagem individual com sua própria animação
+interface MessageBubbleProps {
+  isUser: boolean;
+  text: string;
+  time: string;
+}
+
+const MessageBubble: React.FC<MessageBubbleProps> = ({ isUser, text, time }) => {
+  return (
+    <BubbleContainer $isUser={isUser}>
+      {text}
+      <MessageTime>{time}</MessageTime>
+    </BubbleContainer>
+  );
+};
+
 interface Message {
   id: number;
   text: string;
   isUser: boolean;
   time: string;
+  createdAt: number; // timestamp para criar uma key única para cada mensagem
 }
 
 const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agentIcon }) => {
@@ -215,7 +249,8 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
       id: 1,
       text: `Olá! Eu sou o assistente virtual para ${agentName}. Como posso ajudar você hoje?`,
       isUser: false,
-      time: '09:30'
+      time: '09:30',
+      createdAt: Date.now()
     }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -248,7 +283,8 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
       id: messages.length + 1,
       text: inputValue,
       isUser: true,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      createdAt: Date.now()
     };
     
     setMessages(prev => [...prev, newUserMessage]);
@@ -269,7 +305,8 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
         id: messages.length + 2,
         text: randomResponse,
         isUser: false,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        createdAt: Date.now()
       };
       
       setMessages(prev => [...prev, newAgentMessage]);
@@ -292,10 +329,16 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
         
         <ChatArea>
           {messages.map(message => (
-            <MessageBubble key={message.id} $isUser={message.isUser}>
-              {message.text}
-              <MessageTime>{message.time}</MessageTime>
-            </MessageBubble>
+            <MessageWrapper 
+              key={`${message.id}-${message.createdAt}`}
+              $isUser={message.isUser}
+              className="zoom-in-bounce"
+            >
+              <BubbleContainer $isUser={message.isUser}>
+                {message.text}
+                <MessageTime>{message.time}</MessageTime>
+              </BubbleContainer>
+            </MessageWrapper>
           ))}
           <div ref={messagesEndRef} />
         </ChatArea>
