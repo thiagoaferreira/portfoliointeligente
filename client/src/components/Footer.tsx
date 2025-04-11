@@ -46,9 +46,12 @@ const LogoIcon = styled.div`
 `;
 
 const LogoImage = styled.img`
-  height: 2.8rem;
-  max-width: 160px;
+  width: 250px;
+  height: 100px;
   object-fit: contain;
+  border: 2px solid red;
+  padding: 5px;
+  border-radius: 5px;
 `;
 
 const LogoText = styled.h3`
