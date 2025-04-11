@@ -371,39 +371,6 @@ interface MessageContentProps {
 
 const MessageContent: React.FC<MessageContentProps> = ({ message }) => {
   const { text, type } = message;
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [audioDuration, setAudioDuration] = useState<string>('00:00');
-  
-  // Função para formatar a duração do áudio
-  const formatAudioDuration = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-  
-  // Atualiza a duração quando um áudio é carregado
-  useEffect(() => {
-    if (type === 'audio' && audioRef.current) {
-      const handleLoadedMetadata = () => {
-        if (audioRef.current) {
-          setAudioDuration(formatAudioDuration(audioRef.current.duration));
-        }
-      };
-      
-      audioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
-      
-      // Se já estiver carregado, atualize agora
-      if (audioRef.current.readyState >= 2) {
-        handleLoadedMetadata();
-      }
-      
-      return () => {
-        if (audioRef.current) {
-          audioRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        }
-      };
-    }
-  }, [type, text]);
   
   switch (type) {
     case 'image':
@@ -771,10 +738,14 @@ const GlobalChatModal: React.FC = () => {
         console.log('Mensagens processadas (audio):', messages);
         
         // Função para adicionar mensagens sequencialmente com delay
-        const addMessagesWithDelay = (messages: typeof messages, index: number) => {
-          if (index >= messages.length) return;
+        const addMessagesWithDelay = (msgs: typeof messages, index: number) => {
+          if (index >= msgs.length) {
+            // Desativa o indicador de digitação ao terminar
+            setIsTyping(false);
+            return;
+          }
           
-          const item = messages[index];
+          const item = msgs[index];
           const newAgentMessage: Message = {
             id: messageIdCounter.current++,
             text: item.message,
@@ -788,7 +759,7 @@ const GlobalChatModal: React.FC = () => {
           
           // Agenda a próxima mensagem com delay de 2 segundos
           setTimeout(() => {
-            addMessagesWithDelay(messages, index + 1);
+            addMessagesWithDelay(msgs, index + 1);
           }, 2000);
         };
         
@@ -807,6 +778,8 @@ const GlobalChatModal: React.FC = () => {
         };
         
         setMessages(prev => [...prev, fallbackMessage]);
+        // Desativa o indicador de digitação para a mensagem fallback
+        setIsTyping(false);
       }
     })
     .catch(error => {
@@ -821,6 +794,8 @@ const GlobalChatModal: React.FC = () => {
         type: 'text'
       };
       setMessages(prev => [...prev, errorMessage]);
+      // Desativa o indicador de digitação em caso de erro
+      setIsTyping(false);
     });
   };
   
@@ -910,10 +885,14 @@ const GlobalChatModal: React.FC = () => {
         console.log('Mensagens processadas:', messages);
         
         // Função para adicionar mensagens sequencialmente com delay
-        const addMessagesWithDelay = (messages: typeof messages, index: number) => {
-          if (index >= messages.length) return;
+        const addMessagesWithDelay = (msgs: typeof messages, index: number) => {
+          if (index >= msgs.length) {
+            // Desativa o indicador de digitação ao terminar
+            setIsTyping(false);
+            return;
+          }
           
-          const item = messages[index];
+          const item = msgs[index];
           const newAgentMessage: Message = {
             id: messageIdCounter.current++,
             text: item.message,
@@ -927,7 +906,7 @@ const GlobalChatModal: React.FC = () => {
           
           // Agenda a próxima mensagem com delay de 2 segundos
           setTimeout(() => {
-            addMessagesWithDelay(messages, index + 1);
+            addMessagesWithDelay(msgs, index + 1);
           }, 2000);
         };
         
@@ -946,6 +925,8 @@ const GlobalChatModal: React.FC = () => {
         };
         
         setMessages(prev => [...prev, fallbackMessage]);
+        // Desativa o indicador de digitação para a mensagem fallback
+        setIsTyping(false);
       }
     })
     .catch(error => {
@@ -960,6 +941,8 @@ const GlobalChatModal: React.FC = () => {
         type: 'text'
       };
       setMessages(prev => [...prev, errorMessage]);
+      // Desativa o indicador de digitação em caso de erro
+      setIsTyping(false);
     });
     
     setInputValue('');
@@ -1021,18 +1004,7 @@ const GlobalChatModal: React.FC = () => {
           ))}
           
           {/* Indicador de digitação */}
-          {isTyping && (
-            <MessageWrapper 
-              $isUser={false}
-              className="zoom-in-bounce"
-            >
-              <TypingIndicator>
-                <span></span>
-                <span></span>
-                <span></span>
-              </TypingIndicator>
-            </MessageWrapper>
-          )}
+          {isTyping && <TypingIndicatorComponent />}
           
           <div ref={messagesEndRef} />
         </ChatArea>
