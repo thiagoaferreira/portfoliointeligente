@@ -305,7 +305,72 @@ interface Message {
   isUser: boolean;
   time: string;
   createdAt: number;
+  type?: 'audio' | 'image' | 'document' | 'video' | 'text';
 }
+
+// Renderizador de conteúdo baseado no tipo da mensagem
+interface MessageContentProps {
+  message: Message;
+}
+
+const MessageContent: React.FC<MessageContentProps> = ({ message }) => {
+  const { text, type } = message;
+  
+  switch (type) {
+    case 'image':
+      return (
+        <div className="message-content-image">
+          <img src={text} alt="Imagem enviada" style={{ maxWidth: '100%', borderRadius: '0.5rem', marginBottom: '0.5rem' }} />
+        </div>
+      );
+    
+    case 'audio':
+      return (
+        <div className="message-content-audio">
+          <audio controls src={text} style={{ width: '100%', marginBottom: '0.5rem' }}>
+            Seu navegador não suporta o elemento de áudio.
+          </audio>
+        </div>
+      );
+    
+    case 'video':
+      return (
+        <div className="message-content-video">
+          <video controls src={text} style={{ maxWidth: '100%', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
+            Seu navegador não suporta o elemento de vídeo.
+          </video>
+        </div>
+      );
+    
+    case 'document':
+      return (
+        <div className="message-content-document">
+          <a 
+            href={text} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              color: 'white', 
+              textDecoration: 'none',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              padding: '0.5rem',
+              borderRadius: '0.5rem',
+              marginBottom: '0.5rem'
+            }}
+          >
+            <i className="fas fa-file-alt" style={{ marginRight: '0.5rem' }}></i>
+            Abrir documento
+          </a>
+        </div>
+      );
+    
+    case 'text':
+    default:
+      return <div className="message-content-text">{text}</div>;
+  }
+};
 
 // Componente principal GlobalChatModal
 const GlobalChatModal: React.FC = () => {
@@ -323,7 +388,8 @@ const GlobalChatModal: React.FC = () => {
         text: `Olá! Eu sou o assistente virtual para ${agentName}. Como posso ajudar você hoje?`,
         isUser: false,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        type: 'text'
       }]);
       messageIdCounter.current = 2;
     }
@@ -356,7 +422,8 @@ const GlobalChatModal: React.FC = () => {
       text: inputValue,
       isUser: true,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      type: 'text'
     };
     
     setMessages(prev => [...prev, newUserMessage]);
@@ -376,29 +443,49 @@ const GlobalChatModal: React.FC = () => {
       },
       body: JSON.stringify(webhookPayload),
     })
-    .then(response => {
-      console.log('Webhook response:', response.status);
-      // Simula a resposta do agente após receber confirmação do webhook
-      setTimeout(() => {
-        const agentResponses = [
-          `Como posso ajudar você com ${agentName}?`,
-          `Tenho várias opções para atender suas necessidades de ${agentName}.`,
-          `Posso oferecer soluções personalizadas para ${agentName}.`,
-          `Deixe-me mostrar como nosso serviço de ${agentName} pode beneficiar você.`
-        ];
-        
-        const randomResponse = agentResponses[Math.floor(Math.random() * agentResponses.length)];
-        
-        const newAgentMessage: Message = {
-          id: messageIdCounter.current++,
-          text: randomResponse,
-          isUser: false,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          createdAt: Date.now()
+    .then(response => response.json())
+    .then((responseData: Array<{message: string, typeMessage: 'audio' | 'image' | 'document' | 'video' | 'text'}>) => {
+      console.log('Webhook response data:', responseData);
+      
+      // Processa cada mensagem da resposta com delay entre elas
+      if (Array.isArray(responseData) && responseData.length > 0) {
+        // Função para adicionar mensagens sequencialmente com delay
+        const addMessagesWithDelay = (messages: typeof responseData, index: number) => {
+          if (index >= messages.length) return;
+          
+          const item = messages[index];
+          const newAgentMessage: Message = {
+            id: messageIdCounter.current++,
+            text: item.message,
+            isUser: false,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            createdAt: Date.now(),
+            type: item.typeMessage
+          };
+          
+          setMessages(prev => [...prev, newAgentMessage]);
+          
+          // Agenda a próxima mensagem com delay de 2 segundos
+          setTimeout(() => {
+            addMessagesWithDelay(messages, index + 1);
+          }, 2000);
         };
         
-        setMessages(prev => [...prev, newAgentMessage]);
-      }, 1000);
+        // Inicia o processo com a primeira mensagem
+        addMessagesWithDelay(responseData, 0);
+      } else {
+        // Fallback para quando não há resposta do webhook ou formato é inválido
+        const fallbackMessage: Message = {
+          id: messageIdCounter.current++,
+          text: `Como posso ajudar você com ${agentName}?`,
+          isUser: false,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          createdAt: Date.now(),
+          type: 'text'
+        };
+        
+        setMessages(prev => [...prev, fallbackMessage]);
+      }
     })
     .catch(error => {
       console.error('Erro ao enviar para o webhook:', error);
@@ -408,7 +495,8 @@ const GlobalChatModal: React.FC = () => {
         text: `Desculpe, estamos com dificuldades técnicas. Por favor, tente novamente mais tarde.`,
         isUser: false,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        type: 'text'
       };
       setMessages(prev => [...prev, errorMessage]);
     });
@@ -465,7 +553,7 @@ const GlobalChatModal: React.FC = () => {
               className="zoom-in-bounce"
             >
               <BubbleContainer $isUser={message.isUser}>
-                {message.text}
+                <MessageContent message={message} />
                 <MessageTime>{message.time}</MessageTime>
               </BubbleContainer>
             </MessageWrapper>
