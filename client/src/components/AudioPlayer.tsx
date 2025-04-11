@@ -32,11 +32,12 @@ const AudioContainer = styled.div`
 
 interface AudioPlayerProps {
   src: string;
+  duration?: string; // Opcional, para exibir a duração do áudio gravado
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ src }) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, duration }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [audioDuration, setAudioDuration] = useState<string>('00:00');
+  const [audioDuration, setAudioDuration] = useState<string>(duration || '00:00');
   
   // Função para formatar a duração do áudio
   const formatAudioDuration = (seconds: number): string => {

@@ -389,7 +389,13 @@ const MessageContent: React.FC<MessageContentProps> = ({ message }) => {
       );
     
     case 'audio':
-      return <AudioPlayer src={text} />;
+      // O tempo de gravação estará na mensagem no formato "data:audio/mp3;base64,XXX|duration:MM:SS"
+      let audioDuration = '';
+      if (text.includes('|duration:')) {
+        const parts = text.split('|duration:');
+        audioDuration = parts[1] || '';
+      }
+      return <AudioPlayer src={text.split('|duration:')[0]} duration={audioDuration} />;
     
     case 'video':
       return (
@@ -605,13 +611,35 @@ const useAudioRecorder = () => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
   
+  // Função para descartar a gravação sem processar o áudio
+  const discardRecording = () => {
+    if (isRecording && mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      // Limpa o timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      
+      // Limpa os dados de áudio
+      audioChunksRef.current = [];
+      setAudioBase64(null);
+      setRecordingTime(0);
+      
+      console.log('Gravação descartada');
+    }
+  };
+
   return {
     isRecording,
     recordingTime,
     formattedTime: formatRecordingTime(recordingTime),
     audioBase64,
     startRecording,
-    stopRecording
+    stopRecording,
+    discardRecording
   };
 };
 
@@ -631,7 +659,8 @@ const GlobalChatModal: React.FC = () => {
     formattedTime,
     audioBase64,
     startRecording,
-    stopRecording
+    stopRecording,
+    discardRecording
   } = useAudioRecorder();
   
   // Reseta as mensagens e adiciona a mensagem inicial quando o modal é aberto
@@ -671,10 +700,10 @@ const GlobalChatModal: React.FC = () => {
   const handleSendAudio = () => {
     if (!audioBase64) return;
     
-    // Adiciona mensagem do usuário (áudio)
+    // Adiciona mensagem do usuário (áudio) com a duração
     const newUserMessage: Message = {
       id: messageIdCounter.current++,
-      text: `data:audio/mp3;base64,${audioBase64}`,
+      text: `data:audio/mp3;base64,${audioBase64}|duration:${formattedTime}`,
       isUser: true,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       createdAt: Date.now(),
@@ -811,15 +840,6 @@ const GlobalChatModal: React.FC = () => {
       handleSendAudio();
     }
   }, [audioBase64]);
-  
-  // Função para alternar entre gravação e parada
-  const toggleRecording = () => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
-    }
-  };
 
   const handleSendMessage = () => {
     if (inputValue.trim() === '') return;
@@ -1037,13 +1057,13 @@ const GlobalChatModal: React.FC = () => {
             disabled={isRecording}
           />
           
-          {/* Botão de gravação */}
+          {/* Botão de gravação/descarte */}
           <RecordButton 
-            onClick={toggleRecording}
+            onClick={isRecording ? discardRecording : startRecording}
             $isRecording={isRecording}
-            title={isRecording ? "Pausar gravação" : "Gravar áudio"}
+            title={isRecording ? "Descartar gravação" : "Gravar áudio"}
           >
-            <i className={isRecording ? "fas fa-pause" : "fas fa-microphone"}></i>
+            <i className={isRecording ? "fas fa-trash" : "fas fa-microphone"}></i>
           </RecordButton>
           
           {/* Botão de envio - agora também interrompe e envia o áudio se estiver gravando */}
