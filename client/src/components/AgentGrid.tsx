@@ -67,6 +67,11 @@ const AgentGridContainer = styled.div`
   @media (min-width: 1280px) {
     grid-template-columns: repeat(4, 1fr);
   }
+  
+  & > div {
+    height: 100%;
+    display: flex;
+  }
 `;
 
 const AgentGrid: React.FC = () => {
