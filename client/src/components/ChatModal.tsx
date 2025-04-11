@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useWebSocket } from '../hooks/use-websocket';
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -42,7 +43,6 @@ const ModalOverlay = styled.div<{ $isOpen: boolean }>`
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  animation: ${fadeIn} 0.3s ease;
 `;
 
 const ModalContainer = styled.div`
@@ -56,7 +56,6 @@ const ModalContainer = styled.div`
   flex-direction: column;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(139, 92, 246, 0.3);
-  animation: ${zoomInBounce} 300ms ease;
 `;
 
 const ModalHeader = styled.div`
@@ -255,12 +254,53 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
   ]);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageIdCounter = useRef(2);
+  
+  // Configuração WebSocket
+  const { isConnected, sendMessage } = useWebSocket({
+    onOpen: () => {
+      console.log('WebSocket conectado para chat com', agentName);
+    },
+    onMessage: (data) => {
+      // Processa mensagens recebidas pelo WebSocket
+      if (data.type === 'agent_response' || data.type === 'system_message') {
+        const newMessage: Message = {
+          id: messageIdCounter.current++,
+          text: data.text,
+          isUser: false,
+          time: data.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          createdAt: Date.now()
+        };
+        setMessages(prev => [...prev, newMessage]);
+      }
+    }
+  });
   
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+  
+  // Status de conexão
+  useEffect(() => {
+    if (isOpen) {
+      const connectionStatusMessage: Message = {
+        id: messageIdCounter.current++,
+        text: isConnected 
+          ? 'Conectado ao assistente virtual.' 
+          : 'Conectando ao assistente virtual...',
+        isUser: false,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        createdAt: Date.now()
+      };
+      
+      // Adiciona mensagem apenas na primeira conexão ou se o modal foi reaberto
+      if (messages.length <= 1) {
+        setMessages(prev => [...prev, connectionStatusMessage]);
+      }
+    }
+  }, [isOpen, isConnected]);
   
   // Fecha o modal quando o usuário clica fora dele
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -280,7 +320,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
     
     // Adiciona mensagem do usuário
     const newUserMessage: Message = {
-      id: messages.length + 1,
+      id: messageIdCounter.current++,
       text: inputValue,
       isUser: true,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -288,34 +328,35 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
     };
     
     setMessages(prev => [...prev, newUserMessage]);
-    setInputValue('');
     
-    // Simula resposta do agente após um breve delay
-    setTimeout(() => {
-      const agentResponses = [
-        `Como posso ajudar você com ${agentName}?`,
-        `Tenho várias opções para atender suas necessidades de ${agentName}.`,
-        `Posso oferecer soluções personalizadas para ${agentName}.`,
-        `Deixe-me mostrar como nosso serviço de ${agentName} pode beneficiar você.`
-      ];
-      
-      const randomResponse = agentResponses[Math.floor(Math.random() * agentResponses.length)];
-      
-      const newAgentMessage: Message = {
-        id: messages.length + 2,
-        text: randomResponse,
-        isUser: false,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        createdAt: Date.now()
-      };
-      
-      setMessages(prev => [...prev, newAgentMessage]);
-    }, 1000);
+    // Envia mensagem via WebSocket
+    if (isConnected) {
+      sendMessage({
+        type: 'chat_message',
+        text: inputValue,
+        agentName,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+    } else {
+      // Fallback para caso o WebSocket não esteja conectado
+      setTimeout(() => {
+        const fallbackResponse: Message = {
+          id: messageIdCounter.current++,
+          text: `O assistente está temporariamente indisponível. Por favor, tente novamente em instantes.`,
+          isUser: false,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          createdAt: Date.now()
+        };
+        setMessages(prev => [...prev, fallbackResponse]);
+      }, 1000);
+    }
+    
+    setInputValue('');
   };
   
   return (
-    <ModalOverlay $isOpen={isOpen} onClick={handleOverlayClick} onKeyDown={handleKeyDown}>
-      <ModalContainer>
+    <ModalOverlay $isOpen={isOpen} onClick={handleOverlayClick} onKeyDown={handleKeyDown} className="fade-in">
+      <ModalContainer className="zoom-in-bounce">
         <ModalHeader>
           <AgentAvatar>
             <i className={agentIcon}></i>
