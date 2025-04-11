@@ -65,6 +65,7 @@ const LogoText = styled.h1`
 export const useLogoFromEnv = () => {
   // Recupera a URL do logo da variável de ambiente
   const logoUrl = import.meta.env.VITE_LOGO_URL;
+  console.log('VITE_LOGO_URL:', logoUrl); // Log para debug
   return logoUrl;
 };
 
