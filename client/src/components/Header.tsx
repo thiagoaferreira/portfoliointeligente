@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'wouter';
 
 const HeaderContainer = styled.header`
   position: relative;
@@ -18,7 +17,7 @@ const HeaderContainer = styled.header`
 
 const HeaderContent = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
@@ -56,61 +55,7 @@ const LogoText = styled.h1`
   }
 `;
 
-const Navigation = styled.nav`
-  display: none;
-  
-  @media (min-width: 768px) {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-  }
-`;
-
-const NavLink = styled.a`
-  color: #d1d5db;
-  transition: color 0.3s ease;
-  
-  &:hover {
-    color: #c4b5fd;
-  }
-`;
-
-const ButtonContainer = styled.div`
-  display: none;
-  
-  @media (min-width: 768px) {
-    display: block;
-  }
-`;
-
-const LoginButton = styled.a`
-  padding: 0.625rem 1.25rem;
-  background: linear-gradient(to right, #6b46c1, #2563eb);
-  color: white;
-  border-radius: 0.5rem;
-  display: inline-block;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    box-shadow: 0 10px 15px -3px rgba(107, 70, 193, 0.2);
-  }
-`;
-
-const MobileMenuButton = styled.button`
-  color: white;
-  font-size: 1.25rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  
-  @media (min-width: 768px) {
-    display: none;
-  }
-`;
-
 const Header: React.FC = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
   return (
     <HeaderContainer>
       <HeaderContent>
@@ -120,21 +65,6 @@ const Header: React.FC = () => {
           </LogoIcon>
           <LogoText>Nexus<span>AI</span></LogoText>
         </LogoContainer>
-        
-        <Navigation>
-          <NavLink href="#">Início</NavLink>
-          <NavLink href="#agents">Agentes</NavLink>
-          <NavLink href="#">Sobre</NavLink>
-          <NavLink href="#">Contato</NavLink>
-        </Navigation>
-        
-        <ButtonContainer>
-          <LoginButton href="#">Login</LoginButton>
-        </ButtonContainer>
-        
-        <MobileMenuButton onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          <i className="fas fa-bars"></i>
-        </MobileMenuButton>
       </HeaderContent>
     </HeaderContainer>
   );
