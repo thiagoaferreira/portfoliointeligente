@@ -68,18 +68,12 @@ export const agents: Agent[] = [
   },
   {
     id: 11,
-    icon: 'fas fa-pen-fancy',
-    title: 'Criador de Conteúdo',
-    description: 'Gere conteúdo envolvente para diversos canais. Este agente produz textos, captions e ideias criativas adaptadas à voz da sua marca e às necessidades do seu público.'
-  },
-  {
-    id: 12,
     icon: 'fas fa-hand-holding-heart',
     title: 'Agente Terapeuta',
     description: 'Apoie o trabalho terapêutico com ferramentas inteligentes. Este agente ajuda no agendamento, acompanhamento de pacientes e fornece recursos para diferentes abordagens terapêuticas.'
   },
   {
-    id: 13,
+    id: 12,
     icon: 'fas fa-brain',
     title: 'Agente para Psicólogos',
     description: 'Potencialize a prática psicológica. Este agente facilita a gestão de prontuários, organiza anotações de sessões e ajuda com recursos teóricos específicos para diferentes casos.'
