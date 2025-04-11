@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import lamejs from 'lamejs';
 import TypingIndicatorComponent from './TypingIndicator';
 import AudioPlayer from './AudioPlayer';
+import { useWebhookUrl } from '../hooks/use-env-config';
 
 // Singleton para gerenciar o estado global do modal
 export class ChatModalManager {
@@ -687,6 +688,7 @@ const GlobalChatModal: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageIdCounter = useRef(1);
+  const webhookUrl = useWebhookUrl();
   
   // Estado para gravar áudio
   const {
@@ -761,7 +763,7 @@ const GlobalChatModal: React.FC = () => {
     };
     
     // Envia requisição HTTP POST para o webhook
-    fetch('https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual', {
+    fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -910,7 +912,7 @@ const GlobalChatModal: React.FC = () => {
     };
     
     // Envia requisição HTTP POST para o webhook
-    fetch('https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual', {
+    fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
