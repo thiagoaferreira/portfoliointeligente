@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
+import lamejs from 'lamejs';
 
 // Singleton para gerenciar o estado global do modal
 export class ChatModalManager {
@@ -456,7 +457,7 @@ const useAudioRecorder = () => {
       };
       
       mediaRecorder.onstop = () => {
-        // Quando a gravação for interrompida, converta o áudio para base64
+        // Quando a gravação for interrompida, converta o áudio para MP3 e base64
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
         convertBlobToBase64(audioBlob).then((base64) => {
           setAudioBase64(base64);
@@ -495,18 +496,91 @@ const useAudioRecorder = () => {
     }
   };
   
-  // Função para converter Blob para Base64
+  // Função para comprimir áudio para MP3 usando lamejs e convertê-lo para base64
   const convertBlobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        // Remove o prefixo 'data:audio/wav;base64,' para obter apenas o base64
-        const base64 = base64String.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
+      // Converte o blob para array buffer para processamento
+      blob.arrayBuffer()
+        .then(buffer => {
+          // Converte o buffer para AudioContext para processamento
+          const audioContext = new AudioContext();
+          return audioContext.decodeAudioData(buffer);
+        })
+        .then(audioBuffer => {
+          // Obtem os dados de áudio como Float32Array
+          const samples = audioBuffer.getChannelData(0);
+          
+          // Parâmetros de compressão MP3
+          const sampleRate = audioBuffer.sampleRate;
+          const bitRate = 96; // Taxa de bits menor (kbps) para melhor compressão
+          
+          // Cria o encoder MP3
+          const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, bitRate);
+          
+          // Processa o áudio em blocos para melhor memória
+          const blockSize = 1152; // Tamanho recomendado para frames MP3
+          const mp3Data = [];
+          
+          // Converte Float32Array para Int16Array que o lamejs pode processar
+          const samples16 = new Int16Array(samples.length);
+          for (let i = 0; i < samples.length; i++) {
+            // Normaliza os valores de -1.0,1.0 para -32768,32767
+            samples16[i] = samples[i] < 0 ? 
+              Math.max(-1, samples[i]) * 0x8000 : 
+              Math.min(1, samples[i]) * 0x7FFF;
+          }
+          
+          // Processa o áudio em blocos
+          for (let i = 0; i < samples16.length; i += blockSize) {
+            const blockSamples = samples16.subarray(i, i + blockSize);
+            const mp3Buffer = mp3Encoder.encodeBuffer(blockSamples);
+            if (mp3Buffer.length > 0) {
+              mp3Data.push(mp3Buffer);
+            }
+          }
+          
+          // Adiciona o frame de finalização
+          const mp3Finish = mp3Encoder.flush();
+          if (mp3Finish.length > 0) {
+            mp3Data.push(mp3Finish);
+          }
+          
+          // Combina todos os blocos MP3 em um único Uint8Array
+          const mp3DataLength = mp3Data.reduce((total, buffer) => total + buffer.length, 0);
+          const mp3Complete = new Uint8Array(mp3DataLength);
+          let offset = 0;
+          for (let buffer of mp3Data) {
+            mp3Complete.set(buffer, offset);
+            offset += buffer.length;
+          }
+          
+          // Cria um novo Blob MP3
+          const mp3Blob = new Blob([mp3Complete], { type: 'audio/mp3' });
+          
+          // Converte para base64
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64String = reader.result as string;
+            // Remove o prefixo 'data:audio/mp3;base64,' para obter apenas o base64
+            const base64 = base64String.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(mp3Blob);
+        })
+        .catch(error => {
+          console.error('Erro ao processar áudio:', error);
+          
+          // Fallback para o método original sem compressão se ocorrer um erro
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64String = reader.result as string;
+            const base64 = base64String.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
     });
   };
   
@@ -585,7 +659,7 @@ const GlobalChatModal: React.FC = () => {
     // Adiciona mensagem do usuário (áudio)
     const newUserMessage: Message = {
       id: messageIdCounter.current++,
-      text: `data:audio/wav;base64,${audioBase64}`,
+      text: `data:audio/mp3;base64,${audioBase64}`,
       isUser: true,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       createdAt: Date.now(),
