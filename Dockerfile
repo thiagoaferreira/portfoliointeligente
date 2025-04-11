@@ -1,46 +1,27 @@
-# Estágio de construção
-FROM node:20-alpine AS build
+# Estágio único super simplificado
+FROM node:18-alpine
 
 # Configurações de ambiente
 ENV NODE_ENV=production
+ENV PORT=5000
 
 # Diretório de trabalho
 WORKDIR /app
 
-# Copiar package.json e package-lock.json
+# Copiar package.json e package-lock.json para aproveitar o cache em camadas
 COPY package*.json ./
 
-# Instalar dependências
-RUN npm ci
+# Instalar dependências com npm
+RUN npm install
 
-# Copiar o código fonte da aplicação
+# Copiar o restante do código fonte
 COPY . .
 
-# Construir a aplicação
+# Compilar a aplicação
 RUN npm run build
 
-# Estágio de produção
-FROM node:20-alpine AS production
-
-# Diretório de trabalho
-WORKDIR /app
-
-# Variáveis de ambiente
-ENV NODE_ENV=production
-
-# Copiar package.json e package-lock.json
-COPY package*.json ./
-
-# Instalar apenas dependências de produção
-RUN npm ci --production
-
-# Copiar o código compilado do estágio de construção
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/client/dist ./client/dist
-COPY --from=build /app/server ./server
-
-# Expor a porta que o servidor usa
+# Expor a porta padrão
 EXPOSE 5000
 
-# Comando para iniciar a aplicação
-CMD ["node", "server/index.js"]
+# Iniciar a aplicação 
+CMD ["npm", "run", "start"]

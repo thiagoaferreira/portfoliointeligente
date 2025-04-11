@@ -21,7 +21,7 @@ yarn-error.log
 .parcel-cache
 .next
 .nuxt
-dist
+# Não ignorar dist/ pois precisamos dele para o build
 build
 coverage
 
