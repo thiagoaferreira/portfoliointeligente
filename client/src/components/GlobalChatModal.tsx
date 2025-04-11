@@ -444,13 +444,30 @@ const GlobalChatModal: React.FC = () => {
       body: JSON.stringify(webhookPayload),
     })
     .then(response => response.json())
-    .then((responseData: Array<{message: string, typeMessage: 'audio' | 'image' | 'document' | 'video' | 'text'}>) => {
+    .then((responseData) => {
       console.log('Webhook response data:', responseData);
       
-      // Processa cada mensagem da resposta com delay entre elas
+      // Extrai as mensagens da estrutura aninhada
+      let messages: Array<{message: string, typeMessage: 'audio' | 'image' | 'document' | 'video' | 'text'}> = [];
+      
+      // Tenta acessar cada formato possível de resposta
       if (Array.isArray(responseData) && responseData.length > 0) {
+        // Formato: [{messages: [{message, typeMessage}, ...]}]
+        if (responseData[0]?.messages && Array.isArray(responseData[0].messages)) {
+          messages = responseData[0].messages;
+        } 
+        // Formato: [{message, typeMessage}, ...]
+        else if (responseData[0]?.message && responseData[0]?.typeMessage) {
+          messages = responseData;
+        }
+      }
+      
+      // Processa cada mensagem da resposta com delay entre elas
+      if (messages.length > 0) {
+        console.log('Mensagens processadas:', messages);
+        
         // Função para adicionar mensagens sequencialmente com delay
-        const addMessagesWithDelay = (messages: typeof responseData, index: number) => {
+        const addMessagesWithDelay = (messages: typeof messages, index: number) => {
           if (index >= messages.length) return;
           
           const item = messages[index];
@@ -472,9 +489,10 @@ const GlobalChatModal: React.FC = () => {
         };
         
         // Inicia o processo com a primeira mensagem
-        addMessagesWithDelay(responseData, 0);
+        addMessagesWithDelay(messages, 0);
       } else {
         // Fallback para quando não há resposta do webhook ou formato é inválido
+        console.log('Usando mensagem fallback - formato de resposta não reconhecido');
         const fallbackMessage: Message = {
           id: messageIdCounter.current++,
           text: `Como posso ajudar você com ${agentName}?`,
