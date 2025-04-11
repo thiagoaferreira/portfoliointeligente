@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:5000"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      # Adicione outras variáveis de ambiente conforme necessário, como:
+      # - DATABASE_URL=sua_conexao_de_banco_de_dados
+      # - WEBHOOK_URL=sua_url_de_webhook
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

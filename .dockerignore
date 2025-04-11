@@ -1,0 +1,43 @@
+# Arquivos e pastas de desenvolvimento
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.git
+.github
+.vscode
+.DS_Store
+
+# Arquivos de ambiente (exceto exemplos)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+!.env.example
+
+# Arquivos de cache e build temporários
+.cache
+.parcel-cache
+.next
+.nuxt
+dist
+build
+coverage
+
+# Arquivos de teste e documentação
+test
+tests
+__tests__
+*.test.js
+*.spec.js
+README.md
+CHANGELOG.md
+LICENSE
+docs
+
+# Outros arquivos específicos da aplicação
+Dockerfile
+docker-compose.yml
+.dockerignore
+.gitignore
