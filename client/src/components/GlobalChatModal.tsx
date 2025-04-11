@@ -452,6 +452,11 @@ const useAudioRecorder = () => {
   // Flag para indicar se o áudio foi descartado
   const [isDiscarded, setIsDiscarded] = useState(false);
   
+  // Referência para a função de configuração de audioBase64
+  const audioBase64Setter = useRef(setAudioBase64);
+  // Referência para a função de configuração de isDiscarded
+  const isDiscardedSetter = useRef(setIsDiscarded);
+  
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -617,15 +622,17 @@ const useAudioRecorder = () => {
   const discardRecording = () => {
     if (isRecording && mediaRecorderRef.current) {
       try {
-        // Marca como descartado para evitar o processamento no useEffect
-        setIsDiscarded(true);
-        
-        // Desconecta o evento onstop para evitar que o processamento aconteça
+        // Substitui o evento onstop original por uma função vazia
         if (mediaRecorderRef.current) {
-          mediaRecorderRef.current.onstop = null;
+          mediaRecorderRef.current.onstop = () => {
+            console.log('Áudio descartado - onstop customizado');
+          };
         }
         
-        // Interrompe todos os tracks de áudio diretamente sem acionar eventos do mediaRecorder
+        // Interrompe a gravação
+        mediaRecorderRef.current.stop();
+        
+        // Interrompe todos os tracks de áudio 
         const stream = mediaRecorderRef.current.stream;
         stream.getTracks().forEach(track => track.stop());
         
@@ -641,13 +648,15 @@ const useAudioRecorder = () => {
         // Limpa os dados de áudio sem disparar o callback
         audioChunksRef.current = [];
         
+        // Não setamos audioBase64 para evitar o efeito
+        
         // Reset o tempo de gravação
         setRecordingTime(0);
         
         // Limpa a referência do mediaRecorder
         mediaRecorderRef.current = null;
         
-        console.log('Gravação descartada com sucesso - sem envio ao webhook');
+        console.log('Gravação descartada com sucesso');
       } catch (error) {
         console.error('Erro ao descartar gravação:', error);
       }
@@ -659,6 +668,8 @@ const useAudioRecorder = () => {
     recordingTime,
     formattedTime: formatRecordingTime(recordingTime),
     audioBase64,
+    isDiscarded,
+    setIsDiscarded,
     startRecording,
     stopRecording,
     discardRecording
@@ -680,6 +691,8 @@ const GlobalChatModal: React.FC = () => {
     recordingTime,
     formattedTime,
     audioBase64,
+    isDiscarded,
+    setIsDiscarded,
     startRecording,
     stopRecording,
     discardRecording
@@ -856,12 +869,17 @@ const GlobalChatModal: React.FC = () => {
     });
   };
   
-  // Efeito para enviar o áudio quando estiver disponível
-  useEffect(() => {
-    if (audioBase64) {
+  // Função para lidar com audioBase64 quando disponível
+  const processAudio = () => {
+    if (audioBase64 && !isDiscarded) {
       handleSendAudio();
     }
-  }, [audioBase64]);
+  };
+  
+  // Efeito para enviar o áudio quando estiver disponível
+  useEffect(() => {
+    processAudio();
+  }, [audioBase64, isDiscarded]);
 
   const handleSendMessage = () => {
     if (inputValue.trim() === '') return;
