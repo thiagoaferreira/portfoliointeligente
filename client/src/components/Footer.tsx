@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { useLogoFromEnv } from "../hooks/use-env-config";
+import { useLogoFromEnv, useWhatsAppLink } from "../hooks/use-env-config";
 
 const FooterSection = styled.footer`
   position: relative;
@@ -141,6 +141,9 @@ const BottomLink = styled.a`
 const Footer: React.FC = () => {
   // Usa o hook customizado para obter a URL do logo da variável de ambiente
   const logoUrl = useLogoFromEnv();
+  
+  // Usa o hook customizado para obter o link do WhatsApp da variável de ambiente
+  const whatsappLink = useWhatsAppLink();
 
   // Obtém o ano atual para o copyright
   const currentYear = new Date().getFullYear();
@@ -182,7 +185,7 @@ const Footer: React.FC = () => {
               <SocialLink href="#" aria-label="Instagram">
                 <i className="fab fa-instagram"></i>
               </SocialLink>
-              <SocialLink href="#" aria-label="WhatsApp">
+              <SocialLink href={whatsappLink} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
                 <i className="fab fa-whatsapp"></i>
               </SocialLink>
             </SocialLinks>

@@ -14,3 +14,4 @@ services:
       - NODE_OPTIONS=--experimental-specifier-resolution=node
       - VITE_LOGO_URL=${VITE_LOGO_URL:-https://meudominio.com/nomedaimagem.svg}
       - VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL:-https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual}
+      - VITE_WHATSAPP_NUMBER=${VITE_WHATSAPP_NUMBER:-5544999998888}

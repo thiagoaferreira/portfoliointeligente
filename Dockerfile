@@ -30,6 +30,8 @@ ENV NODE_OPTIONS=--experimental-specifier-resolution=node
 ENV VITE_LOGO_URL=https://meudominio.com/nomedaimagem.svg
 # Variável de ambiente para o webhook (pode ser sobrescrita durante o deploy)
 ENV VITE_WEBHOOK_URL=https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual
+# Variável de ambiente para o número do WhatsApp (pode ser sobrescrita durante o deploy)
+ENV VITE_WHATSAPP_NUMBER=5544999998888
 
 # Diretório de trabalho
 WORKDIR /app
