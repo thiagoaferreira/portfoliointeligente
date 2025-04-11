@@ -740,9 +740,15 @@ const GlobalChatModal: React.FC = () => {
         // Função para adicionar mensagens sequencialmente com delay
         const addMessagesWithDelay = (msgs: typeof messages, index: number) => {
           if (index >= msgs.length) {
-            // Desativa o indicador de digitação ao terminar
-            setIsTyping(false);
             return;
+          }
+          
+          // Verifica se é a última mensagem
+          const isLastMessage = index === msgs.length - 1;
+          
+          // Se for a última mensagem, desativa o indicador ANTES de exibi-la
+          if (isLastMessage) {
+            setIsTyping(false);
           }
           
           const item = msgs[index];
@@ -887,9 +893,15 @@ const GlobalChatModal: React.FC = () => {
         // Função para adicionar mensagens sequencialmente com delay
         const addMessagesWithDelay = (msgs: typeof messages, index: number) => {
           if (index >= msgs.length) {
-            // Desativa o indicador de digitação ao terminar
-            setIsTyping(false);
             return;
+          }
+          
+          // Verifica se é a última mensagem
+          const isLastMessage = index === msgs.length - 1;
+          
+          // Se for a última mensagem, desativa o indicador ANTES de exibi-la
+          if (isLastMessage) {
+            setIsTyping(false);
           }
           
           const item = msgs[index];
