@@ -228,14 +228,16 @@ const MessageWrapper = styled.div<{ $isUser: boolean }>`
 const BubbleContainer = styled.div<{ $isUser: boolean }>`
   max-width: 80%;
   padding: 0.75rem 1rem;
-  border-radius: 1rem;
+  border-radius: 1.5rem;
   background: ${props => props.$isUser 
-    ? 'linear-gradient(to right, #6b46c1, #2563eb)' 
+    ? 'linear-gradient(120deg, #6b46c1, #3a6bd3)' 
     : 'rgba(45, 55, 72, 0.7)'};
   color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   position: relative;
   
+  /* Removendo a ponta de balão para deixar mais limpo como na imagem */
+  /*
   &:after {
     content: '';
     position: absolute;
@@ -243,10 +245,11 @@ const BubbleContainer = styled.div<{ $isUser: boolean }>`
     height: 0;
     border: 0.5rem solid transparent;
     ${props => props.$isUser 
-      ? 'border-left-color: #2563eb; right: -0.75rem; top: 50%; transform: translateY(-50%);'
+      ? 'border-left-color: #3a6bd3; right: -0.75rem; top: 50%; transform: translateY(-50%);'
       : 'border-right-color: rgba(45, 55, 72, 0.7); left: -0.75rem; top: 50%; transform: translateY(-50%);'
     }
   }
+  */
 `;
 
 const MessageTime = styled.span`
