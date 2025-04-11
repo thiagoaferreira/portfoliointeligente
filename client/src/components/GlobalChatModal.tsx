@@ -449,6 +449,8 @@ const useAudioRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBase64, setAudioBase64] = useState<string | null>(null);
+  // Flag para indicar se o áudio foi descartado
+  const [isDiscarded, setIsDiscarded] = useState(false);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -614,32 +616,41 @@ const useAudioRecorder = () => {
   // Função para descartar a gravação sem processar o áudio
   const discardRecording = () => {
     if (isRecording && mediaRecorderRef.current) {
-      // Importante: Interrompemos a gravação sem disparar o evento onstop padrão
-      // para evitar o processamento do áudio
-      const stream = mediaRecorderRef.current.stream;
-      
-      // Interrompe todos os tracks de áudio diretamente
-      stream.getTracks().forEach(track => track.stop());
-      
-      // Define o estado de gravação como falso
-      setIsRecording(false);
-      
-      // Limpa o timer
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
+      try {
+        // Marca como descartado para evitar o processamento no useEffect
+        setIsDiscarded(true);
+        
+        // Desconecta o evento onstop para evitar que o processamento aconteça
+        if (mediaRecorderRef.current) {
+          mediaRecorderRef.current.onstop = null;
+        }
+        
+        // Interrompe todos os tracks de áudio diretamente sem acionar eventos do mediaRecorder
+        const stream = mediaRecorderRef.current.stream;
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Define o estado de gravação como falso
+        setIsRecording(false);
+        
+        // Limpa o timer
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        
+        // Limpa os dados de áudio sem disparar o callback
+        audioChunksRef.current = [];
+        
+        // Reset o tempo de gravação
+        setRecordingTime(0);
+        
+        // Limpa a referência do mediaRecorder
+        mediaRecorderRef.current = null;
+        
+        console.log('Gravação descartada com sucesso - sem envio ao webhook');
+      } catch (error) {
+        console.error('Erro ao descartar gravação:', error);
       }
-      
-      // Limpa os dados de áudio
-      audioChunksRef.current = [];
-      // Importante: NÃO configura audioBase64, já que isso acionaria o webhook
-      // setAudioBase64(null); - Removido para evitar o hook de efeito
-      setRecordingTime(0);
-      
-      // Limpa a referência do mediaRecorder para evitar uso posterior
-      mediaRecorderRef.current = null;
-      
-      console.log('Gravação descartada com sucesso');
     }
   };
 
