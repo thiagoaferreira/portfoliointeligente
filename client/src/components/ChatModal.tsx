@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useWebSocket } from '../hooks/use-websocket';
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -256,51 +255,11 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageIdCounter = useRef(2);
   
-  // Configuração WebSocket
-  const { isConnected, sendMessage } = useWebSocket({
-    onOpen: () => {
-      console.log('WebSocket conectado para chat com', agentName);
-    },
-    onMessage: (data) => {
-      // Processa mensagens recebidas pelo WebSocket
-      if (data.type === 'agent_response' || data.type === 'system_message') {
-        const newMessage: Message = {
-          id: messageIdCounter.current++,
-          text: data.text,
-          isUser: false,
-          time: data.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          createdAt: Date.now()
-        };
-        setMessages(prev => [...prev, newMessage]);
-      }
-    }
-  });
-  
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
-  
-  // Status de conexão
-  useEffect(() => {
-    if (isOpen) {
-      const connectionStatusMessage: Message = {
-        id: messageIdCounter.current++,
-        text: isConnected 
-          ? 'Conectado ao assistente virtual.' 
-          : 'Conectando ao assistente virtual...',
-        isUser: false,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        createdAt: Date.now()
-      };
-      
-      // Adiciona mensagem apenas na primeira conexão ou se o modal foi reaberto
-      if (messages.length <= 1) {
-        setMessages(prev => [...prev, connectionStatusMessage]);
-      }
-    }
-  }, [isOpen, isConnected]);
   
   // Fecha o modal quando o usuário clica fora dele
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -315,6 +274,18 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
     }
   };
   
+  // Função para converter nomes para um formato URL amigável
+  const slugifyAgentName = (name: string): string => {
+    return name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^\w\s-]/g, '') // Remove caracteres especiais
+      .replace(/\s+/g, '-') // Substitui espaços por hífens
+      .replace(/-+/g, '-') // Remove múltiplos hífens
+      .replace(/^-+|-+$/g, ''); // Remove hífens no início e fim
+  };
+
   const handleSendMessage = () => {
     if (inputValue.trim() === '') return;
     
@@ -329,27 +300,57 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
     
     setMessages(prev => [...prev, newUserMessage]);
     
-    // Envia mensagem via WebSocket
-    if (isConnected) {
-      sendMessage({
-        type: 'chat_message',
-        text: inputValue,
-        agentName,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-    } else {
-      // Fallback para caso o WebSocket não esteja conectado
+    // Prepara o formato do payload para o webhook
+    const webhookPayload = {
+      agent: slugifyAgentName(agentName),
+      message: inputValue,
+      typeMessage: "text"
+    };
+    
+    // Envia requisição HTTP POST para o webhook
+    fetch('https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(webhookPayload),
+    })
+    .then(response => {
+      console.log('Webhook response:', response.status);
+      // Simula a resposta do agente após receber confirmação do webhook
       setTimeout(() => {
-        const fallbackResponse: Message = {
+        const agentResponses = [
+          `Como posso ajudar você com ${agentName}?`,
+          `Tenho várias opções para atender suas necessidades de ${agentName}.`,
+          `Posso oferecer soluções personalizadas para ${agentName}.`,
+          `Deixe-me mostrar como nosso serviço de ${agentName} pode beneficiar você.`
+        ];
+        
+        const randomResponse = agentResponses[Math.floor(Math.random() * agentResponses.length)];
+        
+        const newAgentMessage: Message = {
           id: messageIdCounter.current++,
-          text: `O assistente está temporariamente indisponível. Por favor, tente novamente em instantes.`,
+          text: randomResponse,
           isUser: false,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           createdAt: Date.now()
         };
-        setMessages(prev => [...prev, fallbackResponse]);
+        
+        setMessages(prev => [...prev, newAgentMessage]);
       }, 1000);
-    }
+    })
+    .catch(error => {
+      console.error('Erro ao enviar para o webhook:', error);
+      // Mensagem de erro caso a requisição falhe
+      const errorMessage: Message = {
+        id: messageIdCounter.current++,
+        text: `Desculpe, estamos com dificuldades técnicas. Por favor, tente novamente mais tarde.`,
+        isUser: false,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        createdAt: Date.now()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    });
     
     setInputValue('');
   };
