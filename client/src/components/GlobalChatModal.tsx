@@ -689,6 +689,7 @@ const GlobalChatModal: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageIdCounter = useRef(1);
   const webhookUrl = useWebhookUrl();
+  const sessionId = useSessionId();
   
   // Estado para gravar áudio
   const {
@@ -759,7 +760,8 @@ const GlobalChatModal: React.FC = () => {
     const webhookPayload = {
       agent: slugifyAgentName(agentName),
       message: audioBase64,
-      typeMessage: "audio"
+      typeMessage: "audio",
+      sessionId: sessionId
     };
     
     // Envia requisição HTTP POST para o webhook
@@ -908,7 +910,8 @@ const GlobalChatModal: React.FC = () => {
     const webhookPayload = {
       agent: slugifyAgentName(agentName),
       message: inputValue,
-      typeMessage: "text"
+      typeMessage: "text",
+      sessionId: sessionId
     };
     
     // Envia requisição HTTP POST para o webhook

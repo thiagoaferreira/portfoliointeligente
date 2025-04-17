@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useWebhookUrl } from '../hooks/use-env-config';
+import { useWebhookUrl, useSessionId } from '../hooks/use-env-config';
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -259,6 +259,7 @@ interface Message {
 
 const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agentIcon }) => {
   const webhookUrl = useWebhookUrl();
+  const sessionId = useSessionId();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -330,7 +331,8 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
     const webhookPayload = {
       agent: slugifyAgentName(agentName),
       message: inputValue,
-      typeMessage: "text"
+      typeMessage: "text",
+      sessionId: sessionId
     };
     
     // Envia requisição HTTP POST para o webhook
