@@ -764,6 +764,8 @@ const GlobalChatModal: React.FC = () => {
       sessionId: sessionId
     };
     
+    console.log('Enviando mensagem de áudio com sessionId:', sessionId);
+    
     // Envia requisição HTTP POST para o webhook
     fetch(webhookUrl, {
       method: 'POST',
@@ -913,6 +915,8 @@ const GlobalChatModal: React.FC = () => {
       typeMessage: "text",
       sessionId: sessionId
     };
+    
+    console.log('Enviando mensagem de texto com sessionId:', sessionId);
     
     // Envia requisição HTTP POST para o webhook
     fetch(webhookUrl, {

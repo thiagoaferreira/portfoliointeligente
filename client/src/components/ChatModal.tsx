@@ -335,6 +335,8 @@ const ChatModal: React.FC<ChatModalProps> = ({ isOpen, onClose, agentName, agent
       sessionId: sessionId
     };
     
+    console.log('Modal individual: Enviando mensagem com sessionId:', sessionId);
+    
     // Envia requisição HTTP POST para o webhook
     fetch(webhookUrl, {
       method: 'POST',
