@@ -3,7 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import lamejs from 'lamejs';
 import TypingIndicatorComponent from './TypingIndicator';
 import AudioPlayer from './AudioPlayer';
-import { useWebhookUrl } from '../hooks/use-env-config';
+import { useWebhookUrl, useSessionId } from '../hooks/use-env-config';
 
 // Singleton para gerenciar o estado global do modal
 export class ChatModalManager {

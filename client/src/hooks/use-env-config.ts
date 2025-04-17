@@ -1,4 +1,26 @@
 import { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+// Hook para gerenciar o sessionID
+export const useSessionId = () => {
+  const [sessionId, setSessionId] = useState<string>('');
+  
+  useEffect(() => {
+    // Verifica se já existe um sessionId no localStorage
+    let id = localStorage.getItem('nexusai_session_id');
+    
+    // Se não existir, cria um novo e salva no localStorage
+    if (!id) {
+      id = uuidv4();
+      localStorage.setItem('nexusai_session_id', id);
+    }
+    
+    console.log('Session ID:', id);
+    setSessionId(id);
+  }, []);
+  
+  return sessionId;
+};
 
 // Hook para obter o logotipo da variável de ambiente
 export const useLogoFromEnv = () => {
