@@ -2,13 +2,31 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { setupAuth, hashPassword } from "./auth";
+import { setupApiRoutes } from "./api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
-
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  // Configura autenticação
+  const { isAdmin, isAuthenticated } = setupAuth(app);
+  
+  // Configura APIs
+  setupApiRoutes(app);
+  
+  // Inicializador de dados - cria usuário admin padrão se não existir
+  try {
+    const adminUser = await storage.getUserByUsername("admin");
+    if (!adminUser) {
+      console.log("Criando usuário admin padrão...");
+      await storage.createUser({
+        username: "admin",
+        password: await hashPassword("admin"),
+        isAdmin: true
+      });
+      console.log("Usuário admin criado com sucesso.");
+    }
+  } catch (error) {
+    console.error("Erro ao inicializar dados:", error);
+  }
 
   const httpServer = createServer(app);
   

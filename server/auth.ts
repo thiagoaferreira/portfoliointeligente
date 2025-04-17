@@ -35,6 +35,22 @@ declare global {
   }
 }
 
+// Middleware para verificar se o usuário é admin
+function isAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated() && req.user?.isAdmin) {
+    return next();
+  }
+  return res.status(403).json({ error: "Acesso não autorizado" });
+}
+
+// Middleware para verificar se o usuário está autenticado
+function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  return res.status(401).json({ error: "Não autenticado" });
+}
+
 // Configura a autenticação no app Express
 export function setupAuth(app: Express) {
   if (!process.env.SESSION_SECRET) {
@@ -85,22 +101,6 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Middleware para verificar se o usuário é admin
-  export function isAdmin(req: Request, res: Response, next: NextFunction) {
-    if (req.isAuthenticated() && req.user?.isAdmin) {
-      return next();
-    }
-    return res.status(403).json({ error: "Acesso não autorizado" });
-  }
-
-  // Middleware para verificar se o usuário está autenticado
-  export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-    if (req.isAuthenticated()) {
-      return next();
-    }
-    return res.status(401).json({ error: "Não autenticado" });
-  }
-
   // Rota para registrar novo usuário
   app.post("/api/register", async (req, res, next) => {
     try {
@@ -137,7 +137,7 @@ export function setupAuth(app: Express) {
 
   // Rota para login
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: Error | null, user: any, info: any) => {
       if (err) return next(err);
       if (!user) {
         return res.status(401).json({ error: "Credenciais inválidas" });
@@ -171,3 +171,5 @@ export function setupAuth(app: Express) {
   
   return { isAdmin, isAuthenticated };
 }
+
+export { isAdmin, isAuthenticated };

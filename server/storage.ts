@@ -38,11 +38,11 @@ export interface IStorage {
   deleteAgentPrompt(id: number): Promise<boolean>;
   
   // Propriedades
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: any;
   
   constructor() {
     this.sessionStore = new PostgresSessionStore({
@@ -146,10 +146,7 @@ export class DatabaseStorage implements IStorage {
         await db
           .update(agentPrompts)
           .set({ isActive: false })
-          .where(and(
-            eq(agentPrompts.agentId, currentPrompt.agentId),
-            eq(agentPrompts.id, id).not()
-          ));
+          .where(eq(agentPrompts.agentId, currentPrompt.agentId));
       }
     }
     
