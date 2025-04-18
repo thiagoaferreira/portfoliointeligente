@@ -47,10 +47,14 @@ interface AudioPlayerProps {
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, duration }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [audioDuration, setAudioDuration] = useState<string>(duration || '00:00');
+  // Garantir que a duração nunca seja "Infinity:NaN" - usar a duração fornecida ou "00:00"
+  const [audioDuration, setAudioDuration] = useState<string>(duration && duration !== "Infinity:NaN" ? duration : '00:00');
   
   // Função para formatar a duração do áudio
   const formatAudioDuration = (seconds: number): string => {
+    if (!isFinite(seconds) || isNaN(seconds)) {
+      return duration || '00:00'; // Use a duração fornecida ou valor padrão
+    }
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -58,10 +62,23 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, duration }) => {
   
   // Atualiza a duração quando um áudio é carregado
   useEffect(() => {
+    // Se já temos uma duração válida, usamos ela
+    if (duration && duration !== "Infinity:NaN" && duration.match(/^\d{2}:\d{2}$/)) {
+      setAudioDuration(duration);
+      return;
+    }
+    
     if (audioRef.current) {
       const handleLoadedMetadata = () => {
         if (audioRef.current) {
-          setAudioDuration(formatAudioDuration(audioRef.current.duration));
+          const calculatedDuration = formatAudioDuration(audioRef.current.duration);
+          // Só atualize se for uma duração válida
+          if (calculatedDuration !== "Infinity:NaN") {
+            setAudioDuration(calculatedDuration);
+          } else if (duration && duration.match(/^\d{2}:\d{2}$/)) {
+            // Se for "Infinity:NaN", usamos a duração fornecida se for válida
+            setAudioDuration(duration);
+          }
         }
       };
       
@@ -78,7 +95,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, duration }) => {
         }
       };
     }
-  }, [src]);
+  }, [src, duration]);
   
   return (
     <AudioContainer>
