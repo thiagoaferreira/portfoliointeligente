@@ -14,6 +14,10 @@ import { eq, and, desc } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
+import dotenv from 'dotenv';
+
+// Carrega as variáveis de ambiente
+dotenv.config();
 
 const PostgresSessionStore = connectPg(session);
 
