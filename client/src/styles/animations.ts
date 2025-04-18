@@ -58,3 +58,27 @@ export const scale = keyframes`
   from { transform: scale(0.9); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 `;
+
+export const glowPulse = keyframes`
+  0% {
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.5), 0 0 30px rgba(139, 92, 246, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+  }
+`;
+
+export const borderGlow = keyframes`
+  0% {
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    border-color: rgba(139, 92, 246, 0.7);
+  }
+  100% {
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+`;

@@ -4,7 +4,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bot, Users, MessageSquare, Activity } from 'lucide-react';
 import styled from 'styled-components';
-import { fadeIn, slideUp } from '@/styles/animations';
+import { fadeIn, slideUp, glowPulse, borderGlow } from '@/styles/animations';
 
 const PageTitle = styled.h1`
   color: #d8b4fe;
@@ -24,8 +24,7 @@ const StatsGrid = styled.div`
 const StatCard = styled(Card)`
   background: rgba(30, 22, 68, 0.3);
   border: 1px solid rgba(139, 92, 246, 0.3);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  animation: ${slideUp} 0.5s ease-out;
+  animation: ${slideUp} 0.5s ease-out, ${glowPulse} 3s infinite ease-in-out, ${borderGlow} 3s infinite ease-in-out;
   position: relative;
   overflow: hidden;
   
@@ -43,8 +42,9 @@ const StatCard = styled(Card)`
   }
   
   &:hover {
-    border-color: rgba(139, 92, 246, 0.6);
-    box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    animation-play-state: paused;
+    border-color: rgba(139, 92, 246, 0.8);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 40px rgba(139, 92, 246, 0.2);
     transform: translateY(-2px);
     transition: all 0.2s ease;
     
@@ -110,9 +110,8 @@ const ChartSection = styled.div`
 const ChartCard = styled(Card)`
   background: rgba(30, 22, 68, 0.3);
   border: 1px solid rgba(139, 92, 246, 0.3);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
   height: 400px;
-  animation: ${slideUp} 0.5s ease-out;
+  animation: ${slideUp} 0.5s ease-out, ${glowPulse} 4s infinite ease-in-out, ${borderGlow} 4s infinite ease-in-out;
   animation-delay: 0.1s;
   position: relative;
   overflow: hidden;
@@ -131,8 +130,9 @@ const ChartCard = styled(Card)`
   }
   
   &:hover {
-    border-color: rgba(139, 92, 246, 0.6);
-    box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    animation-play-state: paused;
+    border-color: rgba(139, 92, 246, 0.8);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 40px rgba(139, 92, 246, 0.2);
     
     &:after {
       opacity: 1;
