@@ -5,11 +5,36 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import GlobalChatModal from "./components/GlobalChatModal";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AuthProvider } from "./hooks/use-auth";
+
+// Admin pages
+import LoginPage from "./pages/admin/login-page";
+import DashboardPage from "./pages/admin/dashboard-page";
+import AgentsPage from "./pages/admin/agents-page";
+import PromptsPage from "./pages/admin/prompts-page";
 
 function Router() {
   return (
     <Switch>
+      {/* Public routes */}
       <Route path="/" component={Home} />
+      <Route path="/admin/login" component={LoginPage} />
+      
+      {/* Protected admin routes */}
+      <ProtectedRoute path="/admin/dashboard" adminOnly>
+        <DashboardPage />
+      </ProtectedRoute>
+      
+      <ProtectedRoute path="/admin/agents" adminOnly>
+        <AgentsPage />
+      </ProtectedRoute>
+      
+      <ProtectedRoute path="/admin/prompts" adminOnly>
+        <PromptsPage />
+      </ProtectedRoute>
+      
+      {/* Fallback */}
       <Route component={NotFound} />
     </Switch>
   );
@@ -18,9 +43,11 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
-      <GlobalChatModal />
-      <Toaster />
+      <AuthProvider>
+        <Router />
+        <GlobalChatModal />
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
