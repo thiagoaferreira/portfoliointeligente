@@ -2,6 +2,7 @@ import { createContext, ReactNode, useContext } from "react";
 import {
   useQuery,
   useMutation,
+  UseMutationResult
 } from "@tanstack/react-query";
 import { User, InsertUser } from "@shared/schema";
 import { apiRequest, queryClient } from "../lib/queryClient";
@@ -13,14 +14,21 @@ type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: ReturnType<typeof useLoginMutation>;
-  logoutMutation: ReturnType<typeof useLogoutMutation>;
+  loginMutation: UseMutationResult<User, Error, LoginData>;
+  logoutMutation: UseMutationResult<void, Error, void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-function useUserQuery() {
-  return useQuery<User | null>({
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const { toast } = useToast();
+
+  // Buscar dados do usuário
+  const { 
+    data: user, 
+    error, 
+    isLoading 
+  } = useQuery<User | null>({
     queryKey: ["/api/user"],
     queryFn: async () => {
       try {
@@ -34,19 +42,16 @@ function useUserQuery() {
       }
     }
   });
-}
 
-function useLoginMutation() {
-  const { toast } = useToast();
-  
-  return useMutation({
+  // Mutação de login
+  const loginMutation = useMutation<User, Error, LoginData>({
     mutationFn: async (credentials: LoginData) => {
       const res = await apiRequest("POST", "/api/login", credentials);
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(errorText || "Credenciais inválidas");
       }
-      return await res.json() as User;
+      return await res.json();
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
@@ -59,12 +64,9 @@ function useLoginMutation() {
       });
     },
   });
-}
 
-function useLogoutMutation() {
-  const { toast } = useToast();
-  
-  return useMutation({
+  // Mutação de logout
+  const logoutMutation = useMutation<void, Error, void>({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/logout");
       if (!res.ok) {
@@ -86,12 +88,6 @@ function useLogoutMutation() {
       });
     },
   });
-}
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const { data: user, error, isLoading } = useUserQuery();
-  const loginMutation = useLoginMutation();
-  const logoutMutation = useLogoutMutation();
 
   return (
     <AuthContext.Provider
