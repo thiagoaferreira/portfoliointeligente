@@ -228,7 +228,7 @@ const MessageWrapper = styled.div<{ $isUser: boolean }>`
 
 const BubbleContainer = styled.div<{ $isUser: boolean }>`
   max-width: 80%;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1.25rem; /* Aumentado o padding horizontal para 1.25rem (20px) */
   border-radius: 1.5rem;
   background: ${props => props.$isUser 
     ? 'linear-gradient(120deg, #6b46c1, #3a6bd3)' 
