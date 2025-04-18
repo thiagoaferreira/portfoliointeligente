@@ -6,7 +6,7 @@ import { fadeIn } from '@/styles/animations';
 const LayoutContainer = styled.div`
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #2e1065 0%, #1e3a8a 100%);
+  background: linear-gradient(135deg, #1e1644 0%, #0f172a 100%);
 `;
 
 const MainContent = styled.main`

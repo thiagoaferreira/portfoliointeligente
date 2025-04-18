@@ -7,9 +7,10 @@ import styled from 'styled-components';
 import { fadeIn, slideUp } from '@/styles/animations';
 
 const PageTitle = styled.h1`
-  color: white;
+  color: #d8b4fe;
   font-size: 2rem;
   margin-bottom: 1.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   animation: ${fadeIn} 0.5s ease-out;
 `;
 
@@ -21,16 +22,41 @@ const StatsGrid = styled.div`
 `;
 
 const StatCard = styled(Card)`
-  background: rgba(46, 16, 101, 0.25);
+  background: rgba(30, 22, 68, 0.3);
   border: 1px solid rgba(139, 92, 246, 0.3);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
   animation: ${slideUp} 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+  
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(139, 92, 246, 0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 0;
+  }
   
   &:hover {
-    border-color: rgba(139, 92, 246, 0.5);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    border-color: rgba(139, 92, 246, 0.6);
+    box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
     transform: translateY(-2px);
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    
+    &:after {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+  }
+  
+  & > * {
+    position: relative;
+    z-index: 1;
   }
 `;
 
@@ -39,12 +65,13 @@ const StatCardHeader = styled(CardHeader)`
 `;
 
 const StatCardTitle = styled(CardTitle)`
-  color: white;
+  color: #d8b4fe;
   display: flex;
   align-items: center;
   
   svg {
     margin-right: 0.5rem;
+    color: #a78bfa;
   }
 `;
 
@@ -81,16 +108,41 @@ const ChartSection = styled.div`
 `;
 
 const ChartCard = styled(Card)`
-  background: rgba(46, 16, 101, 0.2);
+  background: rgba(30, 22, 68, 0.3);
   border: 1px solid rgba(139, 92, 246, 0.3);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
   height: 400px;
   animation: ${slideUp} 0.5s ease-out;
   animation-delay: 0.1s;
+  position: relative;
+  overflow: hidden;
+  
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(139, 92, 246, 0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 0;
+  }
   
   &:hover {
-    border-color: rgba(139, 92, 246, 0.5);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    border-color: rgba(139, 92, 246, 0.6);
+    box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    
+    &:after {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+  
+  & > * {
+    position: relative;
+    z-index: 1;
   }
 `;
 
