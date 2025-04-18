@@ -3,9 +3,12 @@ import styled from 'styled-components';
 
 // Container estilizado para o player de áudio
 const AudioContainer = styled.div`
-  min-width: 250px;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
   
   .audio-player {
     width: 100%;

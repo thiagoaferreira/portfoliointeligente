@@ -230,6 +230,7 @@ const MessageWrapper = styled.div<{ $isUser: boolean }>`
 
 const BubbleContainer = styled.div<{ $isUser: boolean }>`
   max-width: 80%;
+  width: auto;
   padding: 0.75rem 1.25rem; /* Aumentado o padding horizontal para 1.25rem (20px) */
   border-radius: 1.5rem;
   background: ${(props) =>
@@ -239,6 +240,11 @@ const BubbleContainer = styled.div<{ $isUser: boolean }>`
   color: white;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 250px; /* Largura mínima para acomodar o player de áudio */
 
   /* Removendo a ponta de balão para deixar mais limpo como na imagem */
   /*
@@ -422,10 +428,12 @@ const MessageContent: React.FC<MessageContentProps> = ({ message }) => {
         audioDuration = parts[1] || "";
       }
       return (
-        <AudioPlayer
-          src={text.split("|duration:")[0]}
-          duration={audioDuration}
-        />
+        <div style={{ width: '100%', boxSizing: 'border-box' }}>
+          <AudioPlayer
+            src={text.split("|duration:")[0]}
+            duration={audioDuration}
+          />
+        </div>
       );
 
     case "video":
