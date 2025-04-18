@@ -338,6 +338,7 @@ const RecordingTime = styled.div`
   transform: translateX(-50%);
   background: rgba(22, 27, 58, 0.9);
   color: white;
+  font-weight: 600;
   padding: 0.5rem 1rem;
   border-radius: 1rem;
   border: 1px solid rgba(139, 92, 246, 0.3);
@@ -346,6 +347,7 @@ const RecordingTime = styled.div`
   gap: 0.5rem;
   box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
   z-index: 5;
+  animation: recordingPulse 2s infinite ease-in-out;
 
   &::before {
     content: "";
@@ -364,6 +366,15 @@ const RecordingTime = styled.div`
     }
     50% {
       opacity: 0.5;
+    }
+  }
+  
+  @keyframes recordingPulse {
+    0%, 100% {
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.8), 0 0 30px rgba(139, 92, 246, 0.4);
     }
   }
 `;
