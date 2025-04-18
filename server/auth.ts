@@ -6,6 +6,10 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { insertUserSchema } from "@shared/schema";
+import dotenv from 'dotenv';
+
+// Carrega as variáveis de ambiente
+dotenv.config();
 
 const scryptAsync = promisify(scrypt);
 
@@ -59,13 +63,16 @@ export function setupAuth(app: Express) {
     process.env.SESSION_SECRET = randomSecret;
   }
 
+  // Obtém o tempo máximo de sessão do ambiente ou usa o padrão de 1 dia
+  const sessionMaxAge = parseInt(process.env.SESSION_MAX_AGE || '86400000', 10); // 1 dia em milissegundos
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24, // 1 dia
+      maxAge: sessionMaxAge,
       secure: process.env.NODE_ENV === "production",
     },
   };

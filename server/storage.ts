@@ -49,9 +49,11 @@ export class DatabaseStorage implements IStorage {
   sessionStore: any;
   
   constructor() {
+    // Usa as variáveis de ambiente do arquivo .env para a configuração da sessão
     this.sessionStore = new PostgresSessionStore({
       pool,
-      createTableIfMissing: true
+      createTableIfMissing: true,
+      tableName: process.env.DB_SESSION_TABLE || 'session' // Nome da tabela de sessão, pode ser configurado no .env
     });
   }
   
