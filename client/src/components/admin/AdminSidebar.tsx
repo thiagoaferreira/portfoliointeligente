@@ -22,9 +22,9 @@ const SidebarContainer = styled.div<{ isOpen: boolean }>`
   left: 0;
   height: 100vh;
   width: 250px;
-  background: linear-gradient(180deg, rgba(30, 58, 138, 0.95) 0%, rgba(30, 30, 58, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(46, 16, 101, 0.95) 0%, rgba(30, 58, 138, 0.95) 100%);
   border-right: 1px solid rgba(139, 92, 246, 0.3);
-  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
   transform: translateX(${props => props.isOpen ? '0' : '-100%'});
   transition: transform 0.3s ease;
   z-index: 40;
@@ -138,7 +138,7 @@ const MobileMenuButton = styled(Button)<{ $isOpen: boolean }>`
   left: 1rem;
   z-index: 50;
   padding: 0.5rem;
-  background: ${props => props.$isOpen ? 'transparent' : 'rgba(30, 58, 138, 0.8)'};
+  background: ${props => props.$isOpen ? 'transparent' : 'rgba(46, 16, 101, 0.8)'};
   border: ${props => props.$isOpen ? 'none' : '1px solid rgba(139, 92, 246, 0.3)'};
   color: white;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);

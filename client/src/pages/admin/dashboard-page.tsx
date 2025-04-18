@@ -21,7 +21,7 @@ const StatsGrid = styled.div`
 `;
 
 const StatCard = styled(Card)`
-  background: rgba(30, 58, 138, 0.25);
+  background: rgba(46, 16, 101, 0.25);
   border: 1px solid rgba(139, 92, 246, 0.3);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   animation: ${slideUp} 0.5s ease-out;
@@ -81,7 +81,7 @@ const ChartSection = styled.div`
 `;
 
 const ChartCard = styled(Card)`
-  background: rgba(30, 58, 138, 0.2);
+  background: rgba(46, 16, 101, 0.2);
   border: 1px solid rgba(139, 92, 246, 0.3);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   height: 400px;
