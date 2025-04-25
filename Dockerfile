@@ -91,6 +91,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/shared ./shared
 COPY --from=builder /app/entrypoint.cjs ./entrypoint.cjs
 COPY --from=builder /app/entrypoint.mjs ./entrypoint.mjs
+COPY --from=builder /app/start-simple.js ./start-simple.js
 
 # Criar arquivos vazios de fallback para evitar erros de caminho
 RUN echo "{}" > ./server/package.json
@@ -116,14 +117,20 @@ RUN npm install -g ts-node typescript
 
 # Criar script shell para tentar diferentes entrypoints
 RUN echo '#!/bin/sh\n\
-echo "Tentando iniciar com entrypoint.cjs..."\n\
-node entrypoint.cjs || {\n\
-  echo "Falha ao iniciar com entrypoint.cjs, tentando entrypoint.mjs..."\n\
-  node entrypoint.mjs || {\n\
-    echo "Falha ao iniciar com entrypoint.mjs, tentando diretamente o index.js..."\n\
-    NODE_ENV=production node --experimental-specifier-resolution=node dist/index.js || {\n\
-      echo "Todas as tentativas falharam. Verifique os logs acima para detalhes."\n\
-      exit 1\n\
+echo "Tentando inicialização direta do index.js com Node.js..."\n\
+NODE_ENV=production node --experimental-specifier-resolution=node --experimental-modules --experimental-json-modules dist/index.js || {\n\
+  echo "Falha na inicialização direta, tentando com entrypoint.cjs..."\n\
+  node entrypoint.cjs || {\n\
+    echo "Falha com entrypoint.cjs, tentando com entrypoint.mjs..."\n\
+    node entrypoint.mjs || {\n\
+      echo "Falha com entrypoint.mjs, tentando inicialização com script simples..."\n\
+      node start-simple.js || {\n\
+        echo "Falha com script simples, tentando inicialização emergencial..."\n\
+        cd /app && npm install ts-node typescript -g && npx ts-node server/index.ts || {\n\
+          echo "Todas as tentativas falharam. Verifique os logs acima para detalhes."\n\
+          exit 1\n\
+        }\n\
+      }\n\
     }\n\
   }\n\
 }' > /app/start.sh
