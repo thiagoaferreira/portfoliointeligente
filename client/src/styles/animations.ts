@@ -82,3 +82,36 @@ export const borderGlow = keyframes`
     border-color: rgba(139, 92, 246, 0.3);
   }
 `;
+
+export const gradientShift = keyframes`
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+`;
+
+export const shimmer = keyframes`
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+`;
+
+export const neonPulse = keyframes`
+  0% {
+    text-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 15px rgba(139, 92, 246, 0.7), 0 0 30px rgba(79, 70, 229, 0.4);
+  }
+  100% {
+    text-shadow: 0 0 5px rgba(139, 92, 246, 0.3);
+  }
+`;

@@ -35,7 +35,7 @@ import { Agent, AgentPrompt } from '@shared/schema';
 import { Edit, Trash2, Plus, MessageSquare, CheckCircle } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import styled from 'styled-components';
-import { fadeIn, slideUp } from '@/styles/animations';
+import { fadeIn, slideUp, glowPulse, shimmer, neonPulse, gradientShift, pulseLight } from '@/styles/animations';
 
 const PageHeader = styled.div`
   display: flex;
@@ -48,17 +48,88 @@ const PageHeader = styled.div`
 const PageTitle = styled.h1`
   color: white;
   font-size: 2rem;
+  font-weight: 600;
+  animation: ${neonPulse} 3s infinite ease-in-out;
 `;
 
 const PromptsTable = styled(Card)`
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  animation: ${slideUp} 0.5s ease-out;
+  background: linear-gradient(135deg, rgba(25, 30, 45, 0.8) 0%, rgba(45, 55, 72, 0.7) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 20px rgba(139, 92, 246, 0.15);
+  animation: ${slideUp} 0.5s ease-out, ${glowPulse} 4s infinite ease-in-out;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      rgba(139, 92, 246, 0), 
+      rgba(139, 92, 246, 0.7), 
+      rgba(139, 92, 246, 0)
+    );
+    animation: ${shimmer} 3s infinite linear;
+  }
+`;
+
+const StyledTableRow = styled(TableRow)`
+  position: relative;
+  transition: all 0.2s ease;
+  background: linear-gradient(90deg, rgba(25, 30, 45, 0.3) 0%, rgba(45, 55, 72, 0.3) 100%);
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  
+  &:hover {
+    background: linear-gradient(90deg, rgba(25, 30, 45, 0.6) 0%, rgba(45, 55, 72, 0.6) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  }
+  
+  td {
+    border-bottom: none;
+  }
+  
+  &:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, #8b5cf6, #6366f1);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  
+  &:hover:before {
+    opacity: 1;
+  }
+`;
+
+const StyledTableHead = styled(TableHead)`
+  background: linear-gradient(90deg, rgba(30, 35, 50, 0.7) 0%, rgba(50, 60, 80, 0.7) 100%);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.75rem;
 `;
 
 const ActionButton = styled(Button)`
   padding: 0.5rem;
   height: 2.25rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
   
   svg {
     width: 1rem;
@@ -88,16 +159,22 @@ const PromptTextArea = styled(Textarea)`
 const ActiveBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  background: rgba(34, 197, 94, 0.2);
-  color: rgb(34, 197, 94);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.25) 100%);
+  color: rgb(52, 211, 153);
   border-radius: 1rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.35rem 0.65rem;
   font-size: 0.75rem;
+  font-weight: 500;
+  box-shadow: 0 0 15px rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  letter-spacing: 0.5px;
+  animation: ${pulseLight} 3s infinite ease-in-out;
   
   svg {
     width: 0.75rem;
     height: 0.75rem;
-    margin-right: 0.25rem;
+    margin-right: 0.35rem;
+    filter: drop-shadow(0 0 1px rgba(34, 197, 94, 0.5));
   }
 `;
 
@@ -355,22 +432,25 @@ export default function PromptsPage() {
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
             </div>
           ) : (
-            <Table>
+            <Table className="border-separate border-spacing-y-2">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">ID</TableHead>
-                  <TableHead>Prompt</TableHead>
-                  <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead className="w-[150px] text-right">Ações</TableHead>
+                  <StyledTableHead className="w-[50px]">ID</StyledTableHead>
+                  <StyledTableHead>Prompt</StyledTableHead>
+                  <StyledTableHead className="w-[100px]">Status</StyledTableHead>
+                  <StyledTableHead className="w-[150px] text-right">Ações</StyledTableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {prompts && prompts.length > 0 ? (
                   prompts.map((prompt) => (
-                    <TableRow key={prompt.id}>
+                    <StyledTableRow key={prompt.id}>
                       <TableCell className="font-medium">{prompt.id}</TableCell>
                       <TableCell>
-                        <TruncatedText title={prompt.prompt}>
+                        <TruncatedText 
+                          title={prompt.prompt}
+                          className="text-gray-300"
+                        >
                           {prompt.prompt}
                         </TruncatedText>
                       </TableCell>
@@ -389,7 +469,7 @@ export default function PromptsPage() {
                             size="sm" 
                             onClick={() => handleEdit(prompt)}
                           >
-                            <Edit />
+                            <Edit className="text-blue-400" />
                           </ActionButton>
                           <ActionButton 
                             variant="destructive" 
@@ -400,15 +480,15 @@ export default function PromptsPage() {
                           </ActionButton>
                         </div>
                       </TableCell>
-                    </TableRow>
+                    </StyledTableRow>
                   ))
                 ) : (
-                  <TableRow>
+                  <StyledTableRow>
                     <TableCell colSpan={4} className="text-center py-8">
                       <MessageSquare size={24} className="mx-auto mb-2 opacity-50" />
-                      Nenhum prompt encontrado para este agente
+                      <span className="text-gray-300">Nenhum prompt encontrado para este agente</span>
                     </TableCell>
-                  </TableRow>
+                  </StyledTableRow>
                 )}
               </TableBody>
             </Table>
