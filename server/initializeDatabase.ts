@@ -11,20 +11,36 @@ let databaseInitialized = false;
  * Verifica se a tabela especificada existe no banco de dados
  */
 async function checkTableExists(tableName: string): Promise<boolean> {
-  try {
-    const result = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public'
-        AND table_name = $1
-      );
-    `, [tableName]);
-    
-    return result.rows[0].exists;
-  } catch (error) {
-    console.error(`Erro ao verificar se a tabela ${tableName} existe:`, error);
-    return false;
+  // Número máximo de tentativas para verificar a tabela
+  const maxRetries = 3;
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      const result = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public'
+          AND table_name = $1
+        );
+      `, [tableName]);
+      
+      return result.rows[0].exists;
+    } catch (error) {
+      retries++;
+      console.error(`Erro ao verificar se a tabela ${tableName} existe (tentativa ${retries}/${maxRetries}):`, error);
+      
+      if (retries >= maxRetries) {
+        console.error(`Número máximo de tentativas atingido ao verificar tabela '${tableName}'.`);
+        return false;
+      }
+      
+      // Aguarda um pouco antes de tentar novamente
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
+  
+  return false;
 }
 
 /**
@@ -137,8 +153,16 @@ async function seedInitialData() {
  * @param maxRetries Número máximo de tentativas
  * @param retryDelay Intervalo entre tentativas em ms
  */
-async function connectWithRetry(maxRetries = 5, retryDelay = 2000): Promise<boolean> {
+async function connectWithRetry(maxRetries = 10, retryDelay = 3000): Promise<boolean> {
   let retries = 0;
+  
+  // Imprime informações de conexão para debug
+  console.log('🔍 Tentando conectar ao banco de dados com estas configurações:');
+  console.log(`- DATABASE_URL: ${process.env.DATABASE_URL ? '***' + process.env.DATABASE_URL.substring(process.env.DATABASE_URL.indexOf('@')) : 'não definido'}`);
+  console.log(`- DB_HOST: ${process.env.DB_HOST || 'não definido'}`);
+  console.log(`- DB_PORT: ${process.env.DB_PORT || 'não definido'}`);
+  console.log(`- DB_USER: ${process.env.DB_USER || 'não definido'}`);
+  console.log(`- DB_NAME: ${process.env.DB_NAME || 'não definido'}`);
   
   while (retries < maxRetries) {
     try {
@@ -150,14 +174,24 @@ async function connectWithRetry(maxRetries = 5, retryDelay = 2000): Promise<bool
       retries++;
       console.error(`❌ Tentativa ${retries}/${maxRetries} falhou ao conectar ao banco:`, error?.message || 'Erro desconhecido');
       
+      // Diagnóstico adicional
+      if (error?.message?.includes('no pg_hba.conf entry')) {
+        console.error('⚠️ Erro de autenticação: Verifique as credenciais e permissões do banco de dados.');
+      } else if (error?.message?.includes('connect ECONNREFUSED')) {
+        console.error('⚠️ Conexão recusada: O servidor de banco de dados pode não estar acessível neste host/porta.');
+      } else if (error?.message?.includes('database') && error?.message?.includes('does not exist')) {
+        console.error('⚠️ O banco de dados especificado não existe. Verifique o nome do banco e crie-o se necessário.');
+      }
+      
       if (retries >= maxRetries) {
         console.error('❌ Número máximo de tentativas atingido. Não foi possível conectar ao banco de dados.');
         return false;
       }
       
-      // Espera antes de tentar novamente
-      console.log(`⏳ Aguardando ${retryDelay/1000} segundos antes da próxima tentativa...`);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      // Espera antes de tentar novamente com aumento exponencial do tempo
+      const waitTime = retryDelay * Math.pow(1.5, retries - 1);
+      console.log(`⏳ Aguardando ${waitTime/1000} segundos antes da próxima tentativa...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
     }
   }
   

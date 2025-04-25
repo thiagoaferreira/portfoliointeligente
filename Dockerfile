@@ -89,7 +89,8 @@ RUN mkdir -p dist/public server/public shared
 # Copiar arquivos compilados do estágio de build
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/shared ./shared
-COPY --from=builder /app/entrypoint.js ./entrypoint.js
+COPY --from=builder /app/entrypoint.cjs ./entrypoint.cjs
+COPY --from=builder /app/entrypoint.mjs ./entrypoint.mjs
 
 # Criar arquivos vazios de fallback para evitar erros de caminho
 RUN echo "{}" > ./server/package.json
@@ -113,5 +114,20 @@ EXPOSE 5000
 # Instalar ts-node como fallback para inicialização alternativa
 RUN npm install -g ts-node typescript
 
-# Iniciar a aplicação com script de entrada resiliente
-CMD ["node", "entrypoint.js"]
+# Criar script shell para tentar diferentes entrypoints
+RUN echo '#!/bin/sh\n\
+echo "Tentando iniciar com entrypoint.cjs..."\n\
+node entrypoint.cjs || {\n\
+  echo "Falha ao iniciar com entrypoint.cjs, tentando entrypoint.mjs..."\n\
+  node entrypoint.mjs || {\n\
+    echo "Falha ao iniciar com entrypoint.mjs, tentando diretamente o index.js..."\n\
+    NODE_ENV=production node --experimental-specifier-resolution=node dist/index.js || {\n\
+      echo "Todas as tentativas falharam. Verifique os logs acima para detalhes."\n\
+      exit 1\n\
+    }\n\
+  }\n\
+}' > /app/start.sh
+RUN chmod +x /app/start.sh
+
+# Iniciar a aplicação com script shell que tenta múltiplos entrypoints
+CMD ["/app/start.sh"]
