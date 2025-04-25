@@ -13,25 +13,53 @@ RUN npm install
 # Copiar o restante do código fonte
 COPY . .
 
-# Compilar o frontend com npx
+# Compilar o frontend com npx 
+# O vite.config.ts está configurado para gerar os arquivos em dist/public
 RUN npx vite build
 
 # Compilar o backend com npx
-RUN npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+RUN npx esbuild server/index.ts server/db.ts server/storage.ts server/initializeDatabase.ts server/vite.ts server/auth.ts server/routes.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+# Mostrar os arquivos gerados para debug
+RUN echo "Conteúdo do diretório dist:"
+RUN ls -la dist/
+RUN echo "Conteúdo do diretório dist/public:"
+RUN ls -la dist/public/
 
 # Estágio de produção
 FROM node:18-alpine
 
+# Argumentos de build para variáveis de ambiente (preenchidos pelo comando docker build --build-arg)
+ARG VITE_LOGO_URL
+ARG VITE_WEBHOOK_URL
+ARG VITE_WHATSAPP_NUMBER
+ARG DB_HOST
+ARG DB_PORT
+ARG DB_USER
+ARG DB_PASSWORD
+ARG DB_NAME
+ARG DATABASE_URL
+ARG SESSION_SECRET
+ARG NODE_ENV=production
+
 # Configurações de ambiente
-ENV NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 ENV PORT=5000
 ENV NODE_OPTIONS=--experimental-specifier-resolution=node
-# Variável de ambiente para o logo (pode ser sobrescrita durante o deploy)
-ENV VITE_LOGO_URL=https://meudominio.com/nomedaimagem.svg
-# Variável de ambiente para o webhook (pode ser sobrescrita durante o deploy)
-ENV VITE_WEBHOOK_URL=https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual
-# Variável de ambiente para o número do WhatsApp (pode ser sobrescrita durante o deploy)
-ENV VITE_WHATSAPP_NUMBER=5544999998888
+
+# Variáveis de ambiente da aplicação
+ENV VITE_LOGO_URL=${VITE_LOGO_URL:-https://meudominio.com/nomedaimagem.svg}
+ENV VITE_WEBHOOK_URL=${VITE_WEBHOOK_URL:-https://webhook.dev.testandoaulanapratica.shop/webhook/portfolio_virtual}
+ENV VITE_WHATSAPP_NUMBER=${VITE_WHATSAPP_NUMBER:-5544999998888}
+
+# Variáveis de ambiente do banco de dados
+ENV DB_HOST=${DB_HOST}
+ENV DB_PORT=${DB_PORT}
+ENV DB_USER=${DB_USER}
+ENV DB_PASSWORD=${DB_PASSWORD}
+ENV DB_NAME=${DB_NAME}
+ENV DATABASE_URL=${DATABASE_URL}
+ENV SESSION_SECRET=${SESSION_SECRET:-chave_secreta_padrao_para_sessao}
 
 # Diretório de trabalho
 WORKDIR /app
@@ -42,11 +70,19 @@ COPY package*.json ./
 # Instalar apenas dependências de produção
 RUN npm install --production
 
+# Criar estrutura de diretórios necessária
+RUN mkdir -p dist/public server shared
+
 # Copiar arquivos compilados do estágio de build
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/client/dist ./client/dist
 COPY --from=builder /app/shared ./shared
+
+# Garantir que a pasta server/vite.ts e arquivos relacionados existam
 COPY --from=builder /app/server/vite.ts ./server/vite.ts
+
+# Adicionar arquivo .env para variáveis de ambiente (será sobrescrito pelos valores do container)
+RUN echo "DATABASE_URL=$DATABASE_URL" > .env
+RUN echo "SESSION_SECRET=$SESSION_SECRET" >> .env
 
 # Expor a porta padrão
 EXPOSE 5000
