@@ -9,6 +9,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./hooks/use-auth";
 
 // Admin pages
+import AdminIndexPage from "./pages/admin/index";
 import LoginPage from "./pages/admin/login-page";
 import DashboardPage from "./pages/admin/dashboard-page";
 import AgentsPage from "./pages/admin/agents-page";
@@ -20,6 +21,9 @@ function Router() {
       {/* Public routes */}
       <Route path="/" component={Home} />
       <Route path="/admin/login" component={LoginPage} />
+      
+      {/* Admin root redirects to dashboard or login */}
+      <Route path="/admin" component={AdminIndexPage} />
       
       {/* Protected admin routes */}
       <ProtectedRoute path="/admin/dashboard" adminOnly>
