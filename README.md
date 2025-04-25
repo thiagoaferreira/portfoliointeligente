@@ -165,23 +165,90 @@ Antes de começar, você precisará ter instalado:
 
 ## 📱 Implantação em Produção
 
-### Usando Docker (Maneira mais fácil)
+### Usando Docker (Maneira Recomendada)
 
-Se você já tem o Docker instalado, pode usar:
+Esta é a maneira mais confiável de implantar o NexusAI em ambiente de produção:
 
-```bash
-docker-compose up -d
-```
+1. **Configuração das variáveis de ambiente**:
+   - Copie o arquivo `.env.example` para `.env` e configure todas as variáveis necessárias
+   - Certifique-se de definir `NODE_ENV=production`
+   - Para bancos de dados externos (como Neon), certifique-se de que a URL do banco de dados está correta
 
-Isso iniciará a aplicação e o banco de dados em contêineres separados.
+2. **Build e deploy com Docker Compose**:
+   ```bash
+   # Constrói os contêineres com as variáveis de ambiente
+   docker-compose build --build-arg DATABASE_URL=sua_url_do_banco \
+     --build-arg SESSION_SECRET=sua_chave_secreta \
+     --build-arg VITE_LOGO_URL=url_do_seu_logo \
+     --build-arg VITE_WEBHOOK_URL=url_do_seu_webhook \
+     --build-arg VITE_WHATSAPP_NUMBER=seu_numero_whatsapp
+   
+   # Inicia os serviços em modo destacado
+   docker-compose up -d
+   ```
 
-### Hospedagem na Web
+3. **Verificação da implementação**:
+   ```bash
+   # Verificar logs do contêiner
+   docker-compose logs -f app
+   
+   # Verificar status dos contêineres
+   docker-compose ps
+   ```
 
-Para hospedar em servidores como Heroku, Netlify, Vercel, Railway ou outros:
+### Usando Docker em Serviços de Hospedagem
 
-1. Configure o banco de dados PostgreSQL (muitos serviços oferecem isso como complemento)
-2. Configure as variáveis de ambiente no painel de controle do serviço
-3. Conecte com seu repositório GitHub para implantação automática
+Para implantar em serviços como Easypanel, Coolify, CapRover, ou outras plataformas:
+
+1. **Configure o banco de dados PostgreSQL**:
+   - Use um serviço de banco de dados gerenciado como Neon, ElephantSQL ou Supabase
+   - Ou configure um contêiner PostgreSQL na mesma plataforma
+
+2. **Configuração das variáveis de ambiente**:
+   Defina todas essas variáveis na plataforma de hospedagem:
+
+   ```
+   DATABASE_URL=postgresql://usuario:senha@host:porta/banco
+   DB_HOST=seu_host_db
+   DB_PORT=5432
+   DB_USER=seu_usuario_db
+   DB_PASSWORD=sua_senha_db
+   DB_NAME=seu_nome_db
+   SESSION_SECRET=sua_chave_secreta
+   NODE_ENV=production
+   VITE_LOGO_URL=url_do_seu_logo
+   VITE_WEBHOOK_URL=url_do_seu_webhook
+   VITE_WHATSAPP_NUMBER=seu_numero_whatsapp
+   ```
+
+3. **Configuração do Dockerfile**:
+   - O Dockerfile já está configurado para produção
+   - A aplicação verifica automaticamente o banco de dados na inicialização
+   - As tabelas e dados iniciais serão criados automaticamente se não existirem
+
+### Solução de Problemas em Produção
+
+Se você encontrar problemas durante a implantação, verifique:
+
+1. **Erro de conexão com o banco de dados**:
+   - Verifique se as credenciais do banco de dados estão corretas
+   - Certifique-se de que o banco de dados está acessível a partir do contêiner
+   - O sistema tentará se reconectar automaticamente várias vezes
+
+2. **Erro "Cannot find package 'vite'"**:
+   - Este erro foi resolvido no Dockerfile atual, mas se ocorrer, certifique-se de que:
+   - O arquivo Dockerfile está atualizado com as correções mais recentes
+   - O ambiente tem o pacote Vite instalado para ambiente de produção
+
+3. **Erro ao inicializar o banco de dados**:
+   - Verifique os logs do contêiner para detalhes do erro
+   - O sistema mostrará mensagens detalhadas sobre falhas de conexão
+   - Pode ser um problema temporário de rede, o sistema tentará reconectar automaticamente
+
+4. **Problemas com WebSocket**:
+   - O sistema foi configurado para lidar com problemas comuns de WebSocket
+   - Em alguns ambientes, pode ser necessário desabilitar WebSockets para conexões
+   - Verifique se seu provedor de hospedagem permite conexões WebSocket
 
 ## 📞 Ajuda e Suporte
 

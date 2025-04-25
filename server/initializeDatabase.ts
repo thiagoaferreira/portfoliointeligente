@@ -1,9 +1,11 @@
 import { db, pool } from './db';
 import { sql } from 'drizzle-orm';
-import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { users, agents, agentPrompts } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword } from './auth';
+
+// Variável para indicar se já tentamos inicializar o banco
+let databaseInitialized = false;
 
 /**
  * Verifica se a tabela especificada existe no banco de dados
@@ -131,11 +133,56 @@ async function seedInitialData() {
 }
 
 /**
+ * Função para tentar conectar ao banco de dados com tentativas
+ * @param maxRetries Número máximo de tentativas
+ * @param retryDelay Intervalo entre tentativas em ms
+ */
+async function connectWithRetry(maxRetries = 5, retryDelay = 2000): Promise<boolean> {
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      // Tenta uma consulta simples para verificar a conexão
+      await pool.query('SELECT NOW()');
+      console.log('✅ Conexão com o banco de dados estabelecida!');
+      return true;
+    } catch (error: any) {
+      retries++;
+      console.error(`❌ Tentativa ${retries}/${maxRetries} falhou ao conectar ao banco:`, error?.message || 'Erro desconhecido');
+      
+      if (retries >= maxRetries) {
+        console.error('❌ Número máximo de tentativas atingido. Não foi possível conectar ao banco de dados.');
+        return false;
+      }
+      
+      // Espera antes de tentar novamente
+      console.log(`⏳ Aguardando ${retryDelay/1000} segundos antes da próxima tentativa...`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+  }
+  
+  return false;
+}
+
+/**
  * Inicializa o banco de dados
  */
 export async function initializeDatabase() {
+  // Se já tentamos inicializar antes, não tente novamente
+  if (databaseInitialized) {
+    console.log('🔄 Banco de dados já foi inicializado anteriormente.');
+    return;
+  }
+  
   try {
     console.log('🔍 Verificando banco de dados...');
+    
+    // Primeiro tenta conectar ao banco
+    const connected = await connectWithRetry();
+    if (!connected) {
+      console.error('❌ Não foi possível conectar ao banco de dados após várias tentativas.');
+      return;
+    }
     
     // Verifica e cria tabelas se necessário
     const tablesCreated = await createTablesIfNotExist();
@@ -144,8 +191,13 @@ export async function initializeDatabase() {
     await seedInitialData();
     
     console.log('✅ Banco de dados inicializado com sucesso!');
-  } catch (error) {
+    databaseInitialized = true;
+  } catch (error: any) {
     console.error('❌ Falha ao inicializar banco de dados:', error);
-    throw error;
+    console.error('Detalhes do erro:', error instanceof Error ? error.message : String(error));
+    console.error('Verifique se as variáveis de ambiente DATABASE_URL, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD e DB_NAME estão configuradas corretamente.');
+    
+    // Não lança exceção para permitir que o servidor continue funcionando com operações que não precisam do banco
+    // O banco tentará se reconectar nas próximas solicitações
   }
 }
