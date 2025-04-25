@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import dotenv from "dotenv";
+import { initializeDatabase } from "./initializeDatabase";
 
 // Carrega as variáveis de ambiente do arquivo .env e .env.local
 dotenv.config();
@@ -41,6 +42,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  try {
+    // Inicializa o banco de dados antes de configurar as rotas
+    await initializeDatabase();
+    console.log('Banco de dados verificado e inicializado com sucesso!');
+  } catch (error) {
+    console.error('Erro ao inicializar o banco de dados:', error);
+    process.exit(1); // Encerra o processo se o banco de dados não puder ser inicializado
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -69,6 +79,7 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`✨ Servidor iniciado na porta ${port}`);
+    log(`🔗 Database URL: ${process.env.DATABASE_URL?.split('@')[1] || 'Configurada via variáveis de ambiente'}`);
   });
 })();
