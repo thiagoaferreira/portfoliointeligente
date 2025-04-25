@@ -17,11 +17,17 @@ COPY . .
 # O vite.config.ts está configurado para gerar os arquivos em dist/public
 RUN npx vite build
 
+# Criar arquivo pathResolver.ts se não existir
+RUN [ -f server/pathResolver.ts ] || echo 'import path from "path"; import fs from "fs"; export function getPublicDir() { return process.cwd(); }' > server/pathResolver.ts
+
 # Compilar o backend com npx - definindo vite como externo para evitar erros
-RUN npx esbuild server/index.ts server/db.ts server/storage.ts server/initializeDatabase.ts server/auth.ts server/routes.ts --platform=node --packages=external --external:vite --bundle --format=esm --outdir=dist
+RUN npx esbuild server/index.ts server/db.ts server/storage.ts server/initializeDatabase.ts server/auth.ts server/routes.ts server/pathResolver.ts --platform=node --packages=external --external:vite --bundle --format=esm --outdir=dist
 
 # Compilar server/vite.ts separadamente para melhor compatibilidade
 RUN npx esbuild server/vite.ts --platform=node --packages=external --external:vite --bundle --format=esm --outdir=dist
+
+# Adicionar fallbacks para evitar erros de path.resolve
+RUN echo 'export const __dirname = process.cwd();' > dist/dirname-polyfill.js
 
 # Mostrar os arquivos gerados para debug
 RUN echo "Conteúdo do diretório dist:"
@@ -78,15 +84,24 @@ RUN npm install --production
 RUN npm install vite
 
 # Criar estrutura de diretórios necessária
-RUN mkdir -p dist/public server shared
+RUN mkdir -p dist/public server/public shared
 
 # Copiar arquivos compilados do estágio de build
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/shared ./shared
+COPY --from=builder /app/entrypoint.js ./entrypoint.js
 
-# Garantir que a pasta server/vite.ts e arquivos relacionados existam
+# Criar arquivos vazios de fallback para evitar erros de caminho
+RUN echo "{}" > ./server/package.json
+RUN echo "<!DOCTYPE html><html><head><title>App</title></head><body><div id='root'></div></body></html>" > ./dist/public/index.html
+
+# Garantir que a pasta server e arquivos relacionados existam
 COPY --from=builder /app/server/vite.ts ./server/vite.ts
+COPY --from=builder /app/server/pathResolver.ts ./server/pathResolver.ts
 COPY --from=builder /app/vite.config.ts ./vite.config.ts
+
+# Copiar todos os arquivos estáticos do build
+COPY --from=builder /app/dist/public ./dist/public
 
 # Adicionar arquivo .env para variáveis de ambiente (será sobrescrito pelos valores do container)
 RUN echo "DATABASE_URL=$DATABASE_URL" > .env
@@ -95,5 +110,8 @@ RUN echo "SESSION_SECRET=$SESSION_SECRET" >> .env
 # Expor a porta padrão
 EXPOSE 5000
 
-# Iniciar a aplicação - usando node diretamente para evitar problemas com scripts npm
-CMD ["sh", "-c", "NODE_ENV=production node dist/index.js"]
+# Instalar ts-node como fallback para inicialização alternativa
+RUN npm install -g ts-node typescript
+
+# Iniciar a aplicação com script de entrada resiliente
+CMD ["node", "entrypoint.js"]
